@@ -1,0 +1,67 @@
+# SnowWit New-API 生产环境 Docker Compose
+#
+# 用法：
+#   docker compose -f docker-compose.prod.yml --env-file .env pull
+#   docker compose -f docker-compose.prod.yml --env-file .env up -d
+#
+# 依赖：
+#   - 宿主机 MySQL（宝塔，端口 3306，库 snowwit_newapi）
+#   - .env 文件提供：SQL_DSN / SESSION_SECRET / CRYPTO_SECRET
+#   - Nginx 反代 https://api.example.com -> 127.0.0.1:3000
+#
+# 缓存策略：暂不启用 Redis，使用进程内内存缓存（MEMORY_CACHE_ENABLED=true）
+# 需要多实例部署时再切换到 Redis。
+
+services:
+  new-api:
+    image: ghcr.io/sunquan96/snowwit-newapi:latest
+    container_name: snowwit-newapi
+    restart: always
+    command: --log-dir /app/logs
+    # 只监听本机 127.0.0.1，外部访问统一走 Nginx 反代
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - ./data:/data
+      - ./logs:/app/logs
+    environment:
+      - TZ=Asia/Shanghai
+      # 数据库连接（从 .env 注入，含密码不入库）
+      - SQL_DSN=${SQL_DSN}
+      # 内存缓存（单实例够用，多实例必须切 Redis）
+      - MEMORY_CACHE_ENABLED=true
+      - SYNC_FREQUENCY=60
+      - BATCH_UPDATE_ENABLED=true
+      - BATCH_UPDATE_INTERVAL=5
+      # 安全相关：必须配置且足够随机
+      - SESSION_SECRET=${SESSION_SECRET}
+      - CRYPTO_SECRET=${CRYPTO_SECRET}
+      # 流式响应超时（秒），思考模型/长上下文建议拉高
+      - STREAMING_TIMEOUT=300
+      - RELAY_TIMEOUT=0
+      # 运维
+      - ERROR_LOG_ENABLED=true
+      - NODE_TYPE=master
+      - NODE_NAME=snowwit-hk-1
+      # 前端基础 URL（用于支付/回调/分享链接拼接）
+      - FRONTEND_BASE_URL=${FRONTEND_BASE_URL:-}
+      # 可信回调域名（发卡站对接时填写）
+      - TRUSTED_REDIRECT_DOMAINS=${TRUSTED_REDIRECT_DOMAINS:-}
+    # 让容器能用 host.docker.internal 访问宿主机 MySQL（不依赖 172.17.0.1）
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:3000/api/status >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"

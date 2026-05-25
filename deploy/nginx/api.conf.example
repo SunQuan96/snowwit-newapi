@@ -1,0 +1,70 @@
+# SnowWit New-API Nginx 反向代理示例
+#
+# 用法：
+#   - 在宝塔面板对应站点（api.example.com）的「配置文件」中，把下面这两个 location 段
+#     和 client_max_body_size 粘贴进 server { ... } 块；
+#   - 保留宝塔自动生成的 SSL / 强制 HTTPS / 防火墙规则；
+#   - 删除原来的「默认静态站点 / 反向代理向导」生成的 location /，避免冲突。
+#
+# 关键点：
+#   1. proxy_buffering off：SSE 流式响应必须，否则客户端会卡到超时。
+#   2. proxy_http_version 1.1 + Connection ""：保持后端长连接。
+#   3. /ws：WebSocket 通道（midjourney/suno 异步任务、playground 实时预览等可能用到）。
+#   4. 600s 超时：大模型长输出兜底，单次请求不会被 Nginx 强切。
+
+server {
+    # listen / server_name / ssl_certificate 等保持宝塔生成的内容
+
+    # 上传/批量导入预留 50M
+    client_max_body_size 50m;
+
+    # ===== 主请求（含 SSE 流式） =====
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host  $host;
+
+        # 长连接 + 流式：必须关闭缓冲与缓存
+        proxy_set_header Connection "";
+        proxy_buffering off;
+        proxy_cache off;
+        chunked_transfer_encoding on;
+
+        # 兼容大模型长输出
+        proxy_read_timeout 600s;
+        proxy_send_timeout 600s;
+        proxy_connect_timeout 60s;
+    }
+
+    # ===== WebSocket =====
+    location /ws {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+
+        proxy_set_header Upgrade           $http_upgrade;
+        proxy_set_header Connection        "upgrade";
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # WebSocket 长连接：放到 1 天
+        proxy_read_timeout 86400s;
+        proxy_send_timeout 86400s;
+    }
+
+    # ===== 健康检查（只允许内网/本机访问，可选） =====
+    location = /api/status {
+        proxy_pass http://127.0.0.1:3000/api/status;
+        proxy_set_header Host $host;
+        access_log off;
+        # 如果想暴露给外部监控就删掉下面两行
+        # allow 127.0.0.1;
+        # deny all;
+    }
+}
