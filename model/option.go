@@ -117,6 +117,10 @@ func InitOptionMap() {
 	common.OptionMap["XunhuEnabled"] = strconv.FormatBool(setting.XunhuEnabled)
 	common.OptionMap["XunhuAppID"] = setting.XunhuAppID
 	common.OptionMap["XunhuAppSecret"] = setting.XunhuAppSecret
+	common.OptionMap["XunhuAlipayAppID"] = setting.XunhuAlipayAppID
+	common.OptionMap["XunhuAlipayAppSecret"] = setting.XunhuAlipayAppSecret
+	common.OptionMap["XunhuWxpayAppID"] = setting.XunhuWxpayAppID
+	common.OptionMap["XunhuWxpayAppSecret"] = setting.XunhuWxpayAppSecret
 	common.OptionMap["XunhuGateway"] = setting.XunhuGateway
 	common.OptionMap["XunhuPayMethod"] = setting.XunhuPayMethod
 	common.OptionMap["XunhuMinTopUp"] = strconv.Itoa(setting.XunhuMinTopUp)
@@ -475,6 +479,14 @@ func updateOptionMap(key string, value string) (err error) {
 		setting.XunhuAppID = value
 	case "XunhuAppSecret":
 		setting.XunhuAppSecret = value
+	case "XunhuAlipayAppID":
+		setting.XunhuAlipayAppID = value
+	case "XunhuAlipayAppSecret":
+		setting.XunhuAlipayAppSecret = value
+	case "XunhuWxpayAppID":
+		setting.XunhuWxpayAppID = value
+	case "XunhuWxpayAppSecret":
+		setting.XunhuWxpayAppSecret = value
 	case "XunhuGateway":
 		setting.XunhuGateway = value
 	case "XunhuPayMethod":

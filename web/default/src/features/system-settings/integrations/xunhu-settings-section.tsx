@@ -32,6 +32,10 @@ export interface XunhuSettingsValues {
   XunhuEnabled: boolean
   XunhuAppID: string
   XunhuAppSecret: string
+  XunhuAlipayAppID: string
+  XunhuAlipayAppSecret: string
+  XunhuWxpayAppID: string
+  XunhuWxpayAppSecret: string
   XunhuGateway: string
   XunhuPayMethod: string
   XunhuMinTopUp: number
@@ -63,6 +67,14 @@ export function XunhuSettingsSection(props: Props) {
         { key: 'XunhuEnabled', value: String(values.XunhuEnabled) },
         { key: 'XunhuAppID', value: (values.XunhuAppID || '').trim() },
         {
+          key: 'XunhuAlipayAppID',
+          value: (values.XunhuAlipayAppID || '').trim(),
+        },
+        {
+          key: 'XunhuWxpayAppID',
+          value: (values.XunhuWxpayAppID || '').trim(),
+        },
+        {
           key: 'XunhuGateway',
           value: (values.XunhuGateway || '').replace(/\/+$/, '').trim(),
         },
@@ -80,6 +92,17 @@ export function XunhuSettingsSection(props: Props) {
       const newSecret = (values.XunhuAppSecret || '').trim()
       if (newSecret) {
         updates.push({ key: 'XunhuAppSecret', value: newSecret })
+      }
+      const newAlipaySecret = (values.XunhuAlipayAppSecret || '').trim()
+      if (newAlipaySecret) {
+        updates.push({
+          key: 'XunhuAlipayAppSecret',
+          value: newAlipaySecret,
+        })
+      }
+      const newWxpaySecret = (values.XunhuWxpayAppSecret || '').trim()
+      if (newWxpaySecret) {
+        updates.push({ key: 'XunhuWxpayAppSecret', value: newWxpaySecret })
       }
 
       for (const opt of updates) {
@@ -166,14 +189,57 @@ export function XunhuSettingsSection(props: Props) {
 
       <div className='grid gap-4 sm:grid-cols-2'>
         <div className='grid gap-1.5'>
-          <Label>{t('AppID')}</Label>
+          <Label>{t('Alipay AppID')}</Label>
           <Input
-            placeholder='xxxxxxxxxx'
-            {...form.register('XunhuAppID')}
+            placeholder={t('XunhuPay Alipay channel AppID')}
+            {...form.register('XunhuAlipayAppID')}
           />
         </div>
         <div className='grid gap-1.5'>
-          <Label>{t('AppSecret')}</Label>
+          <Label>{t('Alipay AppSecret')}</Label>
+          <Input
+            type='password'
+            autoComplete='new-password'
+            placeholder={t('Leave blank unless updating')}
+            {...form.register('XunhuAlipayAppSecret')}
+          />
+        </div>
+      </div>
+
+      <div className='grid gap-4 sm:grid-cols-2'>
+        <div className='grid gap-1.5'>
+          <Label>{t('WeChat Pay AppID')}</Label>
+          <Input
+            placeholder={t('XunhuPay WeChat channel AppID')}
+            {...form.register('XunhuWxpayAppID')}
+          />
+        </div>
+        <div className='grid gap-1.5'>
+          <Label>{t('WeChat Pay AppSecret')}</Label>
+          <Input
+            type='password'
+            autoComplete='new-password'
+            placeholder={t('Leave blank unless updating')}
+            {...form.register('XunhuWxpayAppSecret')}
+          />
+        </div>
+      </div>
+
+      <div className='grid gap-4 sm:grid-cols-2'>
+        <div className='grid gap-1.5'>
+          <Label>{t('Default fallback AppID')}</Label>
+          <Input
+            placeholder={t('Optional legacy XunhuPay AppID')}
+            {...form.register('XunhuAppID')}
+          />
+          <p className='text-muted-foreground text-xs'>
+            {t(
+              'Used only when a channel-specific credential is not configured. You can keep the currently working WeChat credential here.'
+            )}
+          </p>
+        </div>
+        <div className='grid gap-1.5'>
+          <Label>{t('Default fallback AppSecret')}</Label>
           <Input
             type='password'
             autoComplete='new-password'

@@ -101,7 +101,7 @@ func GetTopUpInfo(c *gin.Context) {
 	enableXunhu := isXunhuTopUpEnabled()
 	xunhuPayMethods := []map[string]string{}
 	if enableXunhu {
-		if setting.XunhuPayMethodEnabled(setting.XunhuPayMethodAlipay) {
+		if setting.XunhuPayMethodEnabled(setting.XunhuPayMethodAlipay) && service.GetXunhuClientForMethod(setting.XunhuPayMethodAlipay) != nil {
 			xunhuPayMethods = append(xunhuPayMethods, map[string]string{
 				"name":      "支付宝",
 				"type":      setting.XunhuPayMethodAlipay,
@@ -109,7 +109,7 @@ func GetTopUpInfo(c *gin.Context) {
 				"min_topup": strconv.Itoa(setting.XunhuMinTopUp),
 			})
 		}
-		if setting.XunhuPayMethodEnabled(setting.XunhuPayMethodWxpay) {
+		if setting.XunhuPayMethodEnabled(setting.XunhuPayMethodWxpay) && service.GetXunhuClientForMethod(setting.XunhuPayMethodWxpay) != nil {
 			xunhuPayMethods = append(xunhuPayMethods, map[string]string{
 				"name":      "微信支付",
 				"type":      setting.XunhuPayMethodWxpay,

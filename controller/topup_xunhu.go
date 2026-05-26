@@ -108,9 +108,9 @@ func RequestXunhuPay(c *gin.Context) {
 		return
 	}
 
-	client := service.GetXunhuClient()
+	client := service.GetXunhuClientForMethod(method)
 	if client == nil {
-		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "当前管理员未配置虎皮椒"})
+		c.JSON(http.StatusOK, gin.H{"message": "error", "data": "当前管理员未配置该虎皮椒支付方式"})
 		return
 	}
 
@@ -205,7 +205,7 @@ func XunhuNotify(c *gin.Context) {
 		return
 	}
 
-	client := service.GetXunhuClient()
+	client := service.GetXunhuClientForCallback(form)
 	if client == nil {
 		logger.LogError(c.Request.Context(), fmt.Sprintf("虎皮椒 webhook client 未初始化 path=%q client_ip=%s", c.Request.RequestURI, c.ClientIP()))
 		_, _ = c.Writer.Write([]byte("fail"))

@@ -16,23 +16,35 @@ import "strings"
 // XunhuPay (虎皮椒) configuration.
 //
 // XunhuEnabled        — master switch.
-// XunhuAppID          — APPID from xunhupay backend「我的应用」.
-// XunhuAppSecret      — paired secret used for MD5 signature.
+// XunhuAppID          — legacy/default APPID from xunhupay backend「我的应用」.
+// XunhuAppSecret      — legacy/default paired secret used for MD5 signature.
+// XunhuAlipayAppID    — optional Alipay-specific APPID.
+// XunhuAlipayAppSecret — optional Alipay-specific secret.
+// XunhuWxpayAppID     — optional WeChat Pay-specific APPID.
+// XunhuWxpayAppSecret — optional WeChat Pay-specific secret.
 // XunhuGateway        — actual gateway shown in「我的支付渠道」.
-//                       Falls back to https://api.xunhupay.com if empty.
+//
+//	Falls back to https://api.xunhupay.com if empty.
+//
 // XunhuPayMethod      — which payment buttons to surface ("alipay" / "wxpay" / "both").
-//                       Xunhu binds channel to APPID, so "both" only makes sense
-//                       when the operator registered both channels.
+//
+//	Xunhu binds channel to APPID, so "both" only makes sense
+//	when the operator registered both channels.
+//
 // XunhuMinTopUp       — min recharge in display unit (USD). 0 = reuse generic MinTopUp.
 // XunhuTitle          — order title sent upstream (visible to user in WeChat / Alipay).
 var (
-	XunhuEnabled   = false
-	XunhuAppID     = ""
-	XunhuAppSecret = ""
-	XunhuGateway   = ""
-	XunhuPayMethod = "both"
-	XunhuMinTopUp  = 0
-	XunhuTitle     = ""
+	XunhuEnabled         = false
+	XunhuAppID           = ""
+	XunhuAppSecret       = ""
+	XunhuAlipayAppID     = ""
+	XunhuAlipayAppSecret = ""
+	XunhuWxpayAppID      = ""
+	XunhuWxpayAppSecret  = ""
+	XunhuGateway         = ""
+	XunhuPayMethod       = "both"
+	XunhuMinTopUp        = 0
+	XunhuTitle           = ""
 )
 
 const (

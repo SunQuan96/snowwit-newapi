@@ -267,6 +267,10 @@ export type BillingSettings = {
   XunhuEnabled: boolean
   XunhuAppID: string
   XunhuAppSecret: string
+  XunhuAlipayAppID: string
+  XunhuAlipayAppSecret: string
+  XunhuWxpayAppID: string
+  XunhuWxpayAppSecret: string
   XunhuGateway: string
   XunhuPayMethod: string
   XunhuMinTopUp: number

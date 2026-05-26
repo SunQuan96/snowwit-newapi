@@ -45,6 +45,10 @@ export default function SettingsPaymentGatewayXunhu(props) {
     XunhuEnabled: false,
     XunhuAppID: '',
     XunhuAppSecret: '',
+    XunhuAlipayAppID: '',
+    XunhuAlipayAppSecret: '',
+    XunhuWxpayAppID: '',
+    XunhuWxpayAppSecret: '',
     XunhuGateway: '',
     XunhuPayMethod: 'both',
     XunhuMinTopUp: 0,
@@ -58,6 +62,10 @@ export default function SettingsPaymentGatewayXunhu(props) {
         XunhuEnabled: toBoolean(props.options.XunhuEnabled),
         XunhuAppID: props.options.XunhuAppID || '',
         XunhuAppSecret: '',
+        XunhuAlipayAppID: props.options.XunhuAlipayAppID || '',
+        XunhuAlipayAppSecret: '',
+        XunhuWxpayAppID: props.options.XunhuWxpayAppID || '',
+        XunhuWxpayAppSecret: '',
         XunhuGateway: props.options.XunhuGateway || '',
         XunhuPayMethod: props.options.XunhuPayMethod || 'both',
         XunhuMinTopUp:
@@ -81,6 +89,8 @@ export default function SettingsPaymentGatewayXunhu(props) {
       const updates = [
         { key: 'XunhuEnabled', value: inputs.XunhuEnabled ? 'true' : 'false' },
         { key: 'XunhuAppID', value: (inputs.XunhuAppID || '').trim() },
+        { key: 'XunhuAlipayAppID', value: (inputs.XunhuAlipayAppID || '').trim() },
+        { key: 'XunhuWxpayAppID', value: (inputs.XunhuWxpayAppID || '').trim() },
         {
           key: 'XunhuGateway',
           value: (inputs.XunhuGateway || '').replace(/\/+$/, '').trim(),
@@ -102,6 +112,14 @@ export default function SettingsPaymentGatewayXunhu(props) {
       const newSecret = (inputs.XunhuAppSecret || '').trim();
       if (newSecret) {
         updates.push({ key: 'XunhuAppSecret', value: newSecret });
+      }
+      const newAlipaySecret = (inputs.XunhuAlipayAppSecret || '').trim();
+      if (newAlipaySecret) {
+        updates.push({ key: 'XunhuAlipayAppSecret', value: newAlipaySecret });
+      }
+      const newWxpaySecret = (inputs.XunhuWxpayAppSecret || '').trim();
+      if (newWxpaySecret) {
+        updates.push({ key: 'XunhuWxpayAppSecret', value: newWxpaySecret });
       }
 
       const results = await Promise.all(
@@ -212,20 +230,65 @@ export default function SettingsPaymentGatewayXunhu(props) {
           >
             <Col xs={24} sm={24} md={8} lg={8} xl={8}>
               <Form.Input
-                field='XunhuAppID'
-                label={t('AppID')}
-                placeholder={t('虎皮椒后台「我的应用」→ AppID')}
+                field='XunhuAlipayAppID'
+                label={t('支付宝 AppID')}
+                placeholder={t('虎皮椒支付宝渠道 AppID')}
               />
             </Col>
             <Col xs={24} sm={24} md={8} lg={8} xl={8}>
               <Form.Input
-                field='XunhuAppSecret'
-                label={t('AppSecret')}
+                field='XunhuAlipayAppSecret'
+                label={t('支付宝 AppSecret')}
                 placeholder={t('不修改请留空（敏感信息不会回显）')}
                 type='password'
                 autoComplete='new-password'
               />
             </Col>
+            <Col xs={24} sm={24} md={8} lg={8} xl={8}>
+              <Form.Input
+                field='XunhuWxpayAppID'
+                label={t('微信支付 AppID')}
+                placeholder={t('虎皮椒微信支付渠道 AppID')}
+              />
+            </Col>
+          </Row>
+
+          <Row
+            gutter={{ xs: 8, sm: 16, md: 24, lg: 24, xl: 24, xxl: 24 }}
+            style={{ marginTop: 16 }}
+          >
+            <Col xs={24} sm={24} md={8} lg={8} xl={8}>
+              <Form.Input
+                field='XunhuWxpayAppSecret'
+                label={t('微信支付 AppSecret')}
+                placeholder={t('不修改请留空（敏感信息不会回显）')}
+                type='password'
+                autoComplete='new-password'
+              />
+            </Col>
+            <Col xs={24} sm={24} md={8} lg={8} xl={8}>
+              <Form.Input
+                field='XunhuAppID'
+                label={t('默认/兼容 AppID')}
+                placeholder={t('可保留当前已可用的微信 AppID')}
+                extraText={t('仅当对应渠道未单独配置时使用')}
+              />
+            </Col>
+            <Col xs={24} sm={24} md={8} lg={8} xl={8}>
+              <Form.Input
+                field='XunhuAppSecret'
+                label={t('默认/兼容 AppSecret')}
+                placeholder={t('不修改请留空（敏感信息不会回显）')}
+                type='password'
+                autoComplete='new-password'
+              />
+            </Col>
+          </Row>
+
+          <Row
+            gutter={{ xs: 8, sm: 16, md: 24, lg: 24, xl: 24, xxl: 24 }}
+            style={{ marginTop: 16 }}
+          >
             <Col xs={24} sm={24} md={8} lg={8} xl={8}>
               <Form.Input
                 field='XunhuGateway'

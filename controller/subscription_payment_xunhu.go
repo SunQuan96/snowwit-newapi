@@ -101,9 +101,9 @@ func SubscriptionRequestXunhu(c *gin.Context) {
 	notifyURL := callbackAddress + "/api/subscription/xunhu/notify"
 	returnURL := callbackAddress + "/api/subscription/xunhu/return"
 
-	client := service.GetXunhuClient()
+	client := service.GetXunhuClientForMethod(method)
 	if client == nil {
-		common.ApiErrorMsg(c, "当前管理员未配置虎皮椒")
+		common.ApiErrorMsg(c, "当前管理员未配置该虎皮椒支付方式")
 		return
 	}
 
@@ -142,7 +142,7 @@ func SubscriptionRequestXunhu(c *gin.Context) {
 	if err != nil {
 		_ = model.ExpireSubscriptionOrder(tradeNo, model.PaymentProviderXunhu)
 		logger.LogError(c.Request.Context(), fmt.Sprintf("虎皮椒 订阅拉起支付失败 trade_no=%s user_id=%d plan_id=%d error=%q", tradeNo, userId, plan.Id, err.Error()))
-		common.ApiErrorMsg(c, "拉起支付失败：" + err.Error())
+		common.ApiErrorMsg(c, "拉起支付失败："+err.Error())
 		return
 	}
 
@@ -167,7 +167,7 @@ func SubscriptionXunhuNotify(c *gin.Context) {
 		return
 	}
 
-	client := service.GetXunhuClient()
+	client := service.GetXunhuClientForCallback(form)
 	if client == nil {
 		_, _ = c.Writer.Write([]byte("fail"))
 		return
@@ -212,7 +212,7 @@ func SubscriptionXunhuReturn(c *gin.Context) {
 		return
 	}
 
-	client := service.GetXunhuClient()
+	client := service.GetXunhuClientForCallback(form)
 	if client == nil {
 		c.Redirect(http.StatusFound, paymentReturnPath("/console/topup?pay=fail"))
 		return

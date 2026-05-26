@@ -64,11 +64,14 @@ type XunhuClient struct {
 // GetXunhuClient returns a client built from current settings; nil if not
 // configured (caller should treat this as “gateway disabled”).
 func GetXunhuClient() *XunhuClient {
+	return GetXunhuClientForMethod("")
+}
+
+func GetXunhuClientForMethod(method string) *XunhuClient {
 	if !setting.XunhuEnabled {
 		return nil
 	}
-	appID := strings.TrimSpace(setting.XunhuAppID)
-	appSecret := strings.TrimSpace(setting.XunhuAppSecret)
+	appID, appSecret := xunhuCredentialForMethod(method)
 	if appID == "" || appSecret == "" {
 		return nil
 	}
@@ -78,6 +81,60 @@ func GetXunhuClient() *XunhuClient {
 		Gateway:   setting.XunhuGatewayResolved(),
 		Client:    &http.Client{Timeout: xunhuRequestTimeout},
 	}
+}
+
+func GetXunhuClientForCallback(form url.Values) *XunhuClient {
+	if !setting.XunhuEnabled {
+		return nil
+	}
+	appID := strings.TrimSpace(form.Get("appid"))
+	if appID == "" {
+		return GetXunhuClient()
+	}
+	seen := map[string]bool{}
+	for _, pair := range []struct {
+		appID     string
+		appSecret string
+	}{
+		{setting.XunhuAlipayAppID, setting.XunhuAlipayAppSecret},
+		{setting.XunhuWxpayAppID, setting.XunhuWxpayAppSecret},
+		{setting.XunhuAppID, setting.XunhuAppSecret},
+	} {
+		candidateID := strings.TrimSpace(pair.appID)
+		candidateSecret := strings.TrimSpace(pair.appSecret)
+		if candidateID == "" || candidateSecret == "" || seen[candidateID] {
+			continue
+		}
+		seen[candidateID] = true
+		if candidateID == appID {
+			return &XunhuClient{
+				AppID:     candidateID,
+				AppSecret: candidateSecret,
+				Gateway:   setting.XunhuGatewayResolved(),
+				Client:    &http.Client{Timeout: xunhuRequestTimeout},
+			}
+		}
+	}
+	return nil
+}
+
+func xunhuCredentialForMethod(method string) (string, string) {
+	method = strings.ToLower(strings.TrimSpace(method))
+	switch method {
+	case setting.XunhuPayMethodAlipay:
+		if appID, appSecret := trimPair(setting.XunhuAlipayAppID, setting.XunhuAlipayAppSecret); appID != "" && appSecret != "" {
+			return appID, appSecret
+		}
+	case setting.XunhuPayMethodWxpay:
+		if appID, appSecret := trimPair(setting.XunhuWxpayAppID, setting.XunhuWxpayAppSecret); appID != "" && appSecret != "" {
+			return appID, appSecret
+		}
+	}
+	return trimPair(setting.XunhuAppID, setting.XunhuAppSecret)
+}
+
+func trimPair(appID, appSecret string) (string, string) {
+	return strings.TrimSpace(appID), strings.TrimSpace(appSecret)
 }
 
 // MakeSign returns the lowercase hex MD5 hash per Xunhu specification:
