@@ -113,9 +113,16 @@ export function SubscriptionPlansCard({
   const enableCreem = !!topupInfo?.enable_creem_topup
   const enableWaffoPancake = !!topupInfo?.enable_waffo_pancake_topup
   const enableOnlineTopUp = !!topupInfo?.enable_online_topup
+  const enableXunhu = !!topupInfo?.enable_xunhu_topup
   const epayMethods = useMemo(
     () => getEpayMethods(topupInfo?.pay_methods),
     [topupInfo?.pay_methods]
+  )
+  // XunhuPay-only methods, surfaced in the picker when epay is not
+  // configured (xunhu standalone deployments).
+  const xunhuMethods = useMemo(
+    () => getEpayMethods(topupInfo?.xunhu_pay_methods),
+    [topupInfo?.xunhu_pay_methods]
   )
 
   const fetchPlans = useCallback(async () => {
@@ -632,7 +639,9 @@ export function SubscriptionPlansCard({
         enableCreem={enableCreem}
         enableWaffoPancake={enableWaffoPancake}
         enableOnlineTopUp={enableOnlineTopUp}
+        enableXunhu={enableXunhu}
         epayMethods={epayMethods}
+        xunhuMethods={xunhuMethods}
         purchaseLimit={
           selectedPlan?.plan?.max_purchase_per_user
             ? Number(selectedPlan.plan.max_purchase_per_user)

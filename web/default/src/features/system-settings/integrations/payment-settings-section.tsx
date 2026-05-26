@@ -73,6 +73,10 @@ import {
   WaffoSettingsSection,
   type WaffoSettingsValues,
 } from './waffo-settings-section'
+import {
+  XunhuSettingsSection,
+  type XunhuSettingsValues,
+} from './xunhu-settings-section'
 
 const paymentSchema = z.object({
   PayAddress: z.string().refine((value) => {
@@ -157,6 +161,7 @@ type PaymentSettingsSectionProps = {
   waffoPancakeDefaultValues: WaffoPancakeSettingsValues
   waffoPancakeProvisionedStoreID?: string
   waffoPancakeProvisionedProductID?: string
+  xunhuDefaultValues: XunhuSettingsValues
   complianceDefaults: PaymentComplianceDefaults
 }
 
@@ -166,6 +171,7 @@ export function PaymentSettingsSection({
   waffoPancakeDefaultValues,
   waffoPancakeProvisionedStoreID,
   waffoPancakeProvisionedProductID,
+  xunhuDefaultValues,
   complianceDefaults,
 }: PaymentSettingsSectionProps) {
   const { t } = useTranslation()
@@ -1208,6 +1214,10 @@ export function PaymentSettingsSection({
           </div>
         </SettingsForm>
       </Form>
+
+      <Separator />
+
+      <XunhuSettingsSection defaultValues={xunhuDefaultValues} />
 
       <Separator />
 

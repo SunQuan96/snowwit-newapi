@@ -1,4 +1,22 @@
 {
+  "Alipay only": "Alipay only",
+  "Both (Alipay + WeChat)": "Both (Alipay + WeChat)",
+  "Bound payment channel": "Bound payment channel",
+  "Configure at:": "Configure at:",
+  "Controls which buttons show on the top-up page. Actual channel routing is decided by your APPID binding on XunhuPay side.": "Controls which buttons show on the top-up page. Actual channel routing is decided by your APPID binding on XunhuPay side.",
+  "Displayed to the user in WeChat / Alipay": "Displayed to the user in WeChat / Alipay",
+  "Enable XunhuPay": "Enable XunhuPay",
+  "Gateway address": "Gateway address",
+  "Get AppID / AppSecret from XunhuPay console「我的应用」. Gateway address must match「我的支付渠道」 (may differ from api.xunhupay.com). Notify URL is /api/user/xunhu/notify (top-up) and /api/subscription/xunhu/notify (subscription).": "Get AppID / AppSecret from XunhuPay console「我的应用」. Gateway address must match「我的支付渠道」 (may differ from api.xunhupay.com). Notify URL is /api/user/xunhu/notify (top-up) and /api/subscription/xunhu/notify (subscription).",
+  "Leave blank to use the default https://api.xunhupay.com. Override if your XunhuPay channel shows a different gateway.": "Leave blank to use the default https://api.xunhupay.com. Override if your XunhuPay channel shows a different gateway.",
+  "Leave blank unless updating": "Leave blank unless updating",
+  "Minimum top-up (USD)": "Minimum top-up (USD)",
+  "Order title (optional)": "Order title (optional)",
+  "Personal-collection gateway for Alipay / WeChat Pay via XunhuPay (虎皮椒). No company registration required.": "Personal-collection gateway for Alipay / WeChat Pay via XunhuPay (虎皮椒). No company registration required.",
+  "Save XunhuPay settings": "Save XunhuPay settings",
+  "Set to 0 to reuse the global Minimum top-up value.": "Set to 0 to reuse the global Minimum top-up value.",
+  "Subscription Notify URL:": "Subscription Notify URL:",
+  "Top-up Notify URL:": "Top-up Notify URL:",
   "translation": {
     "360": "360",
     "1000": "1000",
@@ -4478,5 +4496,9 @@
     "Zhipu": "Zhipu",
     "Zhipu V4": "Zhipu V4",
     "Zoom": "Zoom"
-  }
+  },
+  "Webhook Configuration:": "Webhook Configuration:",
+  "WeChat Pay only": "WeChat Pay only",
+  "When enabled, Alipay / WeChat Pay buttons on the top-up page route to XunhuPay (overriding Epay).": "When enabled, Alipay / WeChat Pay buttons on the top-up page route to XunhuPay (overriding Epay).",
+  "XunhuPay Gateway": "XunhuPay Gateway"
 }

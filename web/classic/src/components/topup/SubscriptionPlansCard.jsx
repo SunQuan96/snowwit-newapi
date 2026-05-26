@@ -77,6 +77,7 @@ const SubscriptionPlansCard = ({
   enableOnlineTopUp = false,
   enableStripeTopUp = false,
   enableCreemTopUp = false,
+  enableXunhuTopUp = false,
   billingPreference,
   onChangeBillingPreference,
   activeSubscriptions = [],
@@ -174,8 +175,38 @@ const SubscriptionPlansCard = ({
       showError(t('请选择支付方式'));
       return;
     }
+    // 启用虎皮椒 && 当前是 alipay/wxpay → 改走虎皮椒接口
+    // 接口返回 pay_link 让浏览器直接打开,不是表单 POST。
+    const useXunhu =
+      enableXunhuTopUp &&
+      (selectedEpayMethod === 'alipay' || selectedEpayMethod === 'wxpay');
+
     setPaying(true);
     try {
+      if (useXunhu) {
+        const res = await API.post('/api/subscription/xunhu/pay', {
+          plan_id: selectedPlan.plan.id,
+          payment_method: selectedEpayMethod,
+        });
+        if (res.data?.message === 'success') {
+          const payLink = res.data?.data?.pay_link || res.data?.url;
+          if (payLink) {
+            window.open(payLink, '_blank');
+            showSuccess(t('已发起支付'));
+            closeBuy();
+          } else {
+            showError(t('支付链接为空,请稍后重试'));
+          }
+        } else {
+          const errorMsg =
+            typeof res.data?.data === 'string'
+              ? res.data.data
+              : res.data?.message || t('支付失败');
+          showError(errorMsg);
+        }
+        return;
+      }
+
       const res = await API.post('/api/subscription/epay/pay', {
         plan_id: selectedPlan.plan.id,
         payment_method: selectedEpayMethod,
@@ -673,6 +704,7 @@ const SubscriptionPlansCard = ({
         enableOnlineTopUp={enableOnlineTopUp}
         enableStripeTopUp={enableStripeTopUp}
         enableCreemTopUp={enableCreemTopUp}
+        enableXunhuTopUp={enableXunhuTopUp}
         purchaseLimitInfo={
           selectedPlan?.plan?.id
             ? {

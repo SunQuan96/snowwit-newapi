@@ -263,6 +263,14 @@ export type BillingSettings = {
   // section (saved via /api/option/waffo-pancake/save).
   WaffoPancakeStoreID: string
   WaffoPancakeProductID: string
+  // XunhuPay (虎皮椒) — alipay / wxpay personal-collection gateway.
+  XunhuEnabled: boolean
+  XunhuAppID: string
+  XunhuAppSecret: string
+  XunhuGateway: string
+  XunhuPayMethod: string
+  XunhuMinTopUp: number
+  XunhuTitle: string
   'checkin_setting.enabled': boolean
   'checkin_setting.min_quota': number
   'checkin_setting.max_quota': number

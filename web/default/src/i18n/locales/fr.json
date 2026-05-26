@@ -1,4 +1,22 @@
 {
+  "Alipay only": "Alipay uniquement",
+  "Both (Alipay + WeChat)": "Les deux (Alipay + WeChat)",
+  "Bound payment channel": "Canal de paiement associé",
+  "Configure at:": "Configurer sur :",
+  "Controls which buttons show on the top-up page. Actual channel routing is decided by your APPID binding on XunhuPay side.": "Contrôle uniquement les boutons affichés ; le routage réel est décidé côté XunhuPay selon l'APPID associé.",
+  "Displayed to the user in WeChat / Alipay": "Affiché à l'utilisateur dans WeChat / Alipay",
+  "Enable XunhuPay": "Activer XunhuPay",
+  "Gateway address": "Adresse de la passerelle",
+  "Get AppID / AppSecret from XunhuPay console「我的应用」. Gateway address must match「我的支付渠道」 (may differ from api.xunhupay.com). Notify URL is /api/user/xunhu/notify (top-up) and /api/subscription/xunhu/notify (subscription).": "Récupérez l'AppID / AppSecret depuis la console XunhuPay « 我的应用 ». L'adresse de la passerelle doit correspondre à « 我的支付渠道 » (différente possible de api.xunhupay.com). URL de notification : /api/user/xunhu/notify (recharge) et /api/subscription/xunhu/notify (abonnement).",
+  "Leave blank to use the default https://api.xunhupay.com. Override if your XunhuPay channel shows a different gateway.": "Laisser vide pour utiliser l'URL par défaut https://api.xunhupay.com. À remplacer si votre canal XunhuPay affiche une autre passerelle.",
+  "Leave blank unless updating": "Laisser vide sauf pour mise à jour",
+  "Minimum top-up (USD)": "Recharge minimale (USD)",
+  "Order title (optional)": "Titre de la commande (optionnel)",
+  "Personal-collection gateway for Alipay / WeChat Pay via XunhuPay (虎皮椒). No company registration required.": "Passerelle d'encaissement personnel pour Alipay / WeChat Pay via XunhuPay (虎皮椒). Aucune entité d'entreprise requise.",
+  "Save XunhuPay settings": "Enregistrer les paramètres XunhuPay",
+  "Set to 0 to reuse the global Minimum top-up value.": "Mettre à 0 pour réutiliser le minimum global.",
+  "Subscription Notify URL:": "URL de notification (abonnement) :",
+  "Top-up Notify URL:": "URL de notification (recharge) :",
   "translation": {
     "360": "360",
     "1000": "1000",
@@ -4478,5 +4496,9 @@
     "Zhipu": "Zhipu",
     "Zhipu V4": "Zhipu V4",
     "Zoom": "Zoom"
-  }
+  },
+  "Webhook Configuration:": "Configuration du webhook :",
+  "WeChat Pay only": "WeChat Pay uniquement",
+  "When enabled, Alipay / WeChat Pay buttons on the top-up page route to XunhuPay (overriding Epay).": "Une fois activé, les boutons Alipay / WeChat Pay de la page de recharge passent par XunhuPay (à la place d'Epay).",
+  "XunhuPay Gateway": "Passerelle XunhuPay"
 }

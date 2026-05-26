@@ -176,6 +176,15 @@ const BILLING_SECTIONS = [
         }}
         waffoPancakeProvisionedStoreID={settings.WaffoPancakeStoreID ?? ''}
         waffoPancakeProvisionedProductID={settings.WaffoPancakeProductID ?? ''}
+        xunhuDefaultValues={{
+          XunhuEnabled: settings.XunhuEnabled ?? false,
+          XunhuAppID: settings.XunhuAppID ?? '',
+          XunhuAppSecret: settings.XunhuAppSecret ?? '',
+          XunhuGateway: settings.XunhuGateway ?? '',
+          XunhuPayMethod: settings.XunhuPayMethod || 'both',
+          XunhuMinTopUp: settings.XunhuMinTopUp ?? 0,
+          XunhuTitle: settings.XunhuTitle ?? '',
+        }}
         complianceDefaults={{
           confirmed: settings['payment_setting.compliance_confirmed'] ?? false,
           termsVersion:

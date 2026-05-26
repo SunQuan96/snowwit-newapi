@@ -186,9 +186,18 @@ export function Wallet(props: WalletProps) {
     if (!selectedPaymentMethod) return
 
     const isPancake = isWaffoPancakePayment(selectedPaymentMethod.type)
+    // When XunhuPay is enabled, alipay/wxpay buttons are silently
+    // re-routed through /api/user/xunhu/pay instead of epay.
+    const useXunhu =
+      !!topupInfo?.enable_xunhu_topup &&
+      (selectedPaymentMethod.type === 'alipay' ||
+        selectedPaymentMethod.type === 'wxpay')
+
     const success = isPancake
       ? await processWaffoPancakePayment(topupAmount)
-      : await processPayment(topupAmount, selectedPaymentMethod.type)
+      : await processPayment(topupAmount, selectedPaymentMethod.type, {
+          useXunhu,
+        })
 
     if (success) {
       setConfirmDialogOpen(false)

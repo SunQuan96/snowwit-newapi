@@ -24,6 +24,7 @@ import SettingsPaymentGateway from '../../pages/Setting/Payment/SettingsPaymentG
 import SettingsPaymentGatewayStripe from '../../pages/Setting/Payment/SettingsPaymentGatewayStripe';
 import SettingsPaymentGatewayCreem from '../../pages/Setting/Payment/SettingsPaymentGatewayCreem';
 import SettingsPaymentGatewayWaffo from '../../pages/Setting/Payment/SettingsPaymentGatewayWaffo';
+import SettingsPaymentGatewayXunhu from '../../pages/Setting/Payment/SettingsPaymentGatewayXunhu';
 import { API, showError, showSuccess, toBoolean } from '../../helpers';
 import { useTranslation } from 'react-i18next';
 import RiskAcknowledgementModal from '../common/modals/RiskAcknowledgementModal';
@@ -51,6 +52,14 @@ const PaymentSetting = () => {
     StripeUnitPrice: 8.0,
     StripeMinTopUp: 1,
     StripePromotionCodesEnabled: false,
+
+    XunhuEnabled: false,
+    XunhuAppID: '',
+    XunhuAppSecret: '',
+    XunhuGateway: '',
+    XunhuPayMethod: 'both',
+    XunhuMinTopUp: 0,
+    XunhuTitle: '',
 
     'payment_setting.compliance_confirmed': false,
     'payment_setting.compliance_terms_version': '',
@@ -298,6 +307,13 @@ const PaymentSetting = () => {
               </Tabs.TabPane>
               <Tabs.TabPane tab={t('Waffo 设置')} itemKey='waffo'>
                 <SettingsPaymentGatewayWaffo
+                  options={inputs}
+                  refresh={onRefresh}
+                  hideSectionTitle
+                />
+              </Tabs.TabPane>
+              <Tabs.TabPane tab={t('虎皮椒设置')} itemKey='xunhu'>
+                <SettingsPaymentGatewayXunhu
                   options={inputs}
                   refresh={onRefresh}
                   hideSectionTitle

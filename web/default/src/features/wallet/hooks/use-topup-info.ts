@@ -190,6 +190,10 @@ export function useTopupInfo() {
         waffo_pay_methods: parseWaffoPayMethods(
           response.data.waffo_pay_methods
         ),
+        xunhu_pay_methods: parsePaymentMethods(
+          response.data.xunhu_pay_methods,
+          response.data.stripe_min_topup
+        ),
       }
 
       setTopupInfo(processedData)

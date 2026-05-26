@@ -1,4 +1,22 @@
 {
+  "Alipay only": "Alipay のみ",
+  "Both (Alipay + WeChat)": "両方（Alipay + WeChat）",
+  "Bound payment channel": "紐づけ支払いチャネル",
+  "Configure at:": "設定先:",
+  "Controls which buttons show on the top-up page. Actual channel routing is decided by your APPID binding on XunhuPay side.": "チャージ画面の表示ボタンを制御するのみ。実際のルーティングは虎皮椒側 APPID の設定で決まります。",
+  "Displayed to the user in WeChat / Alipay": "WeChat / Alipay 画面に表示",
+  "Enable XunhuPay": "虎皮椒を有効化",
+  "Gateway address": "ゲートウェイ URL",
+  "Get AppID / AppSecret from XunhuPay console「我的应用」. Gateway address must match「我的支付渠道」 (may differ from api.xunhupay.com). Notify URL is /api/user/xunhu/notify (top-up) and /api/subscription/xunhu/notify (subscription).": "虎皮椒の管理画面「我的应用」で AppID / AppSecret を取得し、ゲートウェイ URL は「我的支付渠道」に表示されるドメインを使用してください（api.xunhupay.com とは限りません）。通知 URL：チャージ /api/user/xunhu/notify、サブスク /api/subscription/xunhu/notify。",
+  "Leave blank to use the default https://api.xunhupay.com. Override if your XunhuPay channel shows a different gateway.": "空欄の場合は https://api.xunhupay.com を使用。虎皮椒側で別のドメインが表示されている場合のみ上書きしてください。",
+  "Leave blank unless updating": "更新しない場合は空のまま",
+  "Minimum top-up (USD)": "最低チャージ金額（USD）",
+  "Order title (optional)": "注文タイトル（任意）",
+  "Personal-collection gateway for Alipay / WeChat Pay via XunhuPay (虎皮椒). No company registration required.": "虎皮椒の個人向け収納チャネル。法人不要で Alipay / WeChat Pay を接続できます。",
+  "Save XunhuPay settings": "虎皮椒設定を保存",
+  "Set to 0 to reuse the global Minimum top-up value.": "0 に設定するとグローバルの最低チャージ金額を再利用します。",
+  "Subscription Notify URL:": "サブスク通知 URL:",
+  "Top-up Notify URL:": "チャージ通知 URL:",
   "translation": {
     "360": "360",
     "1000": "1000",
@@ -4478,5 +4496,9 @@
     "Zhipu": "Zhipu",
     "Zhipu V4": "Zhipu V 4",
     "Zoom": "ズーム"
-  }
+  },
+  "Webhook Configuration:": "Webhook 設定:",
+  "WeChat Pay only": "WeChat Pay のみ",
+  "When enabled, Alipay / WeChat Pay buttons on the top-up page route to XunhuPay (overriding Epay).": "有効化すると、チャージ画面の「Alipay / WeChat Pay」ボタンは虎皮椒経由で処理されます（Epay より優先）。",
+  "XunhuPay Gateway": "虎皮椒（XunhuPay）ゲートウェイ"
 }

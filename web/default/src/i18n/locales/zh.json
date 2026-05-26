@@ -1,4 +1,22 @@
 {
+  "Alipay only": "仅支付宝",
+  "Both (Alipay + WeChat)": "同时启用（支付宝 + 微信）",
+  "Bound payment channel": "绑定支付渠道",
+  "Configure at:": "配置入口：",
+  "Controls which buttons show on the top-up page. Actual channel routing is decided by your APPID binding on XunhuPay side.": "仅控制充值页显示哪些按钮，实际通道仍由虎皮椒侧 APPID 绑定决定。",
+  "Displayed to the user in WeChat / Alipay": "微信 / 支付宝支付页面显示的标题",
+  "Enable XunhuPay": "启用虎皮椒",
+  "Gateway address": "网关地址",
+  "Get AppID / AppSecret from XunhuPay console「我的应用」. Gateway address must match「我的支付渠道」 (may differ from api.xunhupay.com). Notify URL is /api/user/xunhu/notify (top-up) and /api/subscription/xunhu/notify (subscription).": "在虎皮椒后台「我的应用」获取 AppID / AppSecret；网关地址需与「我的支付渠道」一致（可能不是默认的 api.xunhupay.com）。回调地址：充值 /api/user/xunhu/notify，订阅 /api/subscription/xunhu/notify。",
+  "Leave blank to use the default https://api.xunhupay.com. Override if your XunhuPay channel shows a different gateway.": "留空使用默认 https://api.xunhupay.com；如你的虎皮椒支付渠道显示其它地址，请按实际填写。",
+  "Leave blank unless updating": "不修改请留空",
+  "Minimum top-up (USD)": "最低充值金额（USD）",
+  "Order title (optional)": "订单标题（可选）",
+  "Personal-collection gateway for Alipay / WeChat Pay via XunhuPay (虎皮椒). No company registration required.": "基于虎皮椒的个人收款通道，支持支付宝 / 微信支付，无需公司主体即可对接。",
+  "Save XunhuPay settings": "保存虎皮椒设置",
+  "Set to 0 to reuse the global Minimum top-up value.": "填 0 时复用全局「最低充值金额」配置。",
+  "Subscription Notify URL:": "订阅回调地址：",
+  "Top-up Notify URL:": "充值回调地址：",
   "translation": {
     "360": "360",
     "1000": "1000",
@@ -4478,5 +4496,9 @@
     "Zhipu": "智谱",
     "Zhipu V4": "智谱 V4",
     "Zoom": "缩放"
-  }
+  },
+  "Webhook Configuration:": "回调配置：",
+  "WeChat Pay only": "仅微信支付",
+  "When enabled, Alipay / WeChat Pay buttons on the top-up page route to XunhuPay (overriding Epay).": "开启后，充值页面的「支付宝 / 微信支付」按钮将通过虎皮椒下单（覆盖易支付通道）。",
+  "XunhuPay Gateway": "虎皮椒支付网关"
 }

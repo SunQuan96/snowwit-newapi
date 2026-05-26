@@ -108,3 +108,24 @@ func isEpayWebhookConfigured() bool {
 func isEpayWebhookEnabled() bool {
 	return isEpayTopUpEnabled()
 }
+
+// isXunhuTopUpEnabled is true when:
+//   - payment compliance is confirmed;
+//   - master switch (XunhuEnabled) is on;
+//   - both AppID and AppSecret are set.
+//
+// XunhuGateway is optional (falls back to https://api.xunhupay.com).
+func isXunhuTopUpEnabled() bool {
+	if !isPaymentComplianceConfirmed() {
+		return false
+	}
+	if !setting.XunhuEnabled {
+		return false
+	}
+	return strings.TrimSpace(setting.XunhuAppID) != "" &&
+		strings.TrimSpace(setting.XunhuAppSecret) != ""
+}
+
+func isXunhuWebhookEnabled() bool {
+	return isXunhuTopUpEnabled()
+}

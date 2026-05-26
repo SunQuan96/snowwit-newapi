@@ -45,6 +45,18 @@ export type CreemPaymentResponse = ApiResponse<{ checkout_url: string }>
 export type WaffoPaymentResponse = ApiResponse<
   { payment_url?: string } | string
 >
+/**
+ * XunhuPay payment response. Backend returns a pay URL the browser can
+ * open directly (no form-POST like epay).
+ */
+export type XunhuPaymentResponse = ApiResponse<{
+  pay_link: string
+  url_qrcode?: string
+  open_order_id?: string
+}> & {
+  url?: string
+}
+
 export type WaffoPancakePaymentResponse = ApiResponse<
   | {
       checkout_url?: string
@@ -150,6 +162,12 @@ export interface TopupInfo {
   enable_waffo_pancake_topup?: boolean
   /** Minimum topup amount for Waffo Pancake */
   waffo_pancake_min_topup?: number
+  /** Whether XunhuPay topup is enabled */
+  enable_xunhu_topup?: boolean
+  /** Available XunhuPay payment methods (filtered server-side) */
+  xunhu_pay_methods?: PaymentMethod[]
+  /** Minimum topup amount for XunhuPay (USD or display unit) */
+  xunhu_min_topup?: number
   /** Whether redemption code usage is enabled */
   enable_redemption?: boolean
   /** Whether compliance confirmation has been completed */

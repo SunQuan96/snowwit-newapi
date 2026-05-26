@@ -38,6 +38,7 @@ import type {
   WaffoPaymentResponse,
   WaffoPancakePaymentRequest,
   WaffoPancakePaymentResponse,
+  XunhuPaymentResponse,
 } from './types'
 
 // ============================================================================
@@ -166,6 +167,21 @@ export async function requestWaffoPancakePayment(
     skipBusinessError: true,
   } as Record<string, unknown>)
   return res.data
+}
+
+/**
+ * Request XunhuPay (虎皮椒) top-up.
+ */
+export async function requestXunhuPayment(
+  request: PaymentRequest
+): Promise<XunhuPaymentResponse> {
+  const res = await api.post('/api/user/xunhu/pay', request, {
+    skipBusinessError: true,
+  } as Record<string, unknown>)
+  return {
+    ...res.data,
+    url: res.data.url || (res as unknown as { url?: string }).url,
+  }
 }
 
 /**

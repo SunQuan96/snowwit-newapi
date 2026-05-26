@@ -52,6 +52,7 @@ const SubscriptionPurchaseModal = ({
   enableOnlineTopUp = false,
   enableStripeTopUp = false,
   enableCreemTopUp = false,
+  enableXunhuTopUp = false,
   purchaseLimitInfo = null,
   onPayStripe,
   onPayCreem,
@@ -68,7 +69,10 @@ const SubscriptionPurchaseModal = ({
   // 只有当管理员开启支付网关 AND 套餐配置了对应的支付ID时才显示
   const hasStripe = enableStripeTopUp && !!plan?.stripe_price_id;
   const hasCreem = enableCreemTopUp && !!plan?.creem_product_id;
-  const hasEpay = enableOnlineTopUp && epayMethods.length > 0;
+  // 启用虎皮椒后,alipay/wxpay 也可走订阅支付 → 即便 epay 未开,只要有可用支付方式
+  // 仍展示「支付方式」下拉。
+  const hasEpay =
+    (enableOnlineTopUp || enableXunhuTopUp) && epayMethods.length > 0;
   const hasAnyPayment = hasStripe || hasCreem || hasEpay;
   const purchaseLimit = Number(purchaseLimitInfo?.limit || 0);
   const purchaseCount = Number(purchaseLimitInfo?.count || 0);

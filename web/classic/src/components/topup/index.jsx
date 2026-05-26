@@ -93,6 +93,11 @@ const TopUp = () => {
   const [enableWaffoPancakeTopUp, setEnableWaffoPancakeTopUp] = useState(false);
   const [waffoPancakeMinTopUp, setWaffoPancakeMinTopUp] = useState(1);
 
+  // XunhuPay (虎皮椒) — 启用后将 alipay / wxpay 的请求路由到 /api/user/xunhu/pay
+  const [enableXunhuTopUp, setEnableXunhuTopUp] = useState(false);
+  const [xunhuPayMethods, setXunhuPayMethods] = useState([]);
+  const [xunhuMinTopUp, setXunhuMinTopUp] = useState(1);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [open, setOpen] = useState(false);
   const [payWay, setPayWay] = useState('');
@@ -224,6 +229,12 @@ const TopUp = () => {
         showError(t('管理员未开启 Waffo 充值！'));
         return;
       }
+    } else if (
+      (payment === 'alipay' || payment === 'wxpay') &&
+      enableXunhuTopUp
+    ) {
+      // 启用虎皮椒时,alipay/wxpay 不再需要 enableOnlineTopUp(易支付)。
+      // 只要虎皮椒已开启即可走虎皮椒通道。
     } else {
       if (!enableOnlineTopUp) {
         showError(t('管理员未开启在线充值！'));
@@ -289,6 +300,12 @@ const TopUp = () => {
       showError('充值数量不能小于' + minTopUp);
       return;
     }
+
+    // XunhuPay 路由判断:启用虎皮椒且当前支付方式为 alipay/wxpay 时,
+    // 走 /api/user/xunhu/pay 而非 /api/user/pay(易支付)。
+    const useXunhu =
+      enableXunhuTopUp && (payWay === 'alipay' || payWay === 'wxpay');
+
     setConfirmLoading(true);
     try {
       let res;
@@ -298,8 +315,14 @@ const TopUp = () => {
           amount: parseInt(topUpCount),
           payment_method: 'stripe',
         });
+      } else if (useXunhu) {
+        // XunhuPay 充值请求
+        res = await API.post('/api/user/xunhu/pay', {
+          amount: parseInt(topUpCount),
+          payment_method: payWay,
+        });
       } else {
-        // 普通支付请求
+        // 易支付请求
         res = await API.post('/api/user/pay', {
           amount: parseInt(topUpCount),
           payment_method: payWay,
@@ -312,6 +335,14 @@ const TopUp = () => {
           if (payWay === 'stripe') {
             // Stripe 支付回调处理
             window.open(data.pay_link, '_blank');
+          } else if (useXunhu) {
+            // 虎皮椒直接返回 pay_link,新窗口打开即可,无需表单提交
+            const payLink = data?.pay_link || res.data.url;
+            if (payLink) {
+              window.open(payLink, '_blank');
+            } else {
+              showError(t('支付链接为空,请稍后重试'));
+            }
           } else {
             // 普通支付表单提交
             let params = data;
@@ -660,15 +691,20 @@ const TopUp = () => {
           const enableWaffoTopUp = data.enable_waffo_topup || false;
           const enableWaffoPancakeTopUp =
             data.enable_waffo_pancake_topup || false;
+          const enableXunhuFlag = data.enable_xunhu_topup || false;
+          // 最低充值金额优先级:在线(易支付) > 虎皮椒 > Stripe > Waffo > Pancake。
+          // 易支付与虎皮椒都使用「美元等价」单位,放在前面。
           const minTopUpValue = enableOnlineTopUp
             ? data.min_topup
-            : enableStripeTopUp
-              ? data.stripe_min_topup
-              : enableWaffoTopUp
-                ? data.waffo_min_topup
-                : enableWaffoPancakeTopUp
-                  ? data.waffo_pancake_min_topup
-                  : 1;
+            : enableXunhuFlag
+              ? data.xunhu_min_topup || 1
+              : enableStripeTopUp
+                ? data.stripe_min_topup
+                : enableWaffoTopUp
+                  ? data.waffo_min_topup
+                  : enableWaffoPancakeTopUp
+                    ? data.waffo_pancake_min_topup
+                    : 1;
           setEnableOnlineTopUp(enableOnlineTopUp);
           setEnableStripeTopUp(enableStripeTopUp);
           setEnableCreemTopUp(enableCreemTopUp);
@@ -677,6 +713,16 @@ const TopUp = () => {
           setWaffoMinTopUp(data.waffo_min_topup || 1);
           setEnableWaffoPancakeTopUp(enableWaffoPancakeTopUp);
           setWaffoPancakeMinTopUp(data.waffo_pancake_min_topup || 1);
+
+          // XunhuPay 状态:启用标志由后端 enable_xunhu_topup 决定;
+          // xunhu_pay_methods 在 epay 未配置时由后端注入 pay_methods,
+          // 启用 epay 时只作为辅助列表(不直接展示按钮),
+          // 路由切换仅依据 enable_xunhu_topup 这一个标志位。
+          const enableXunhuTopUp = data.enable_xunhu_topup || false;
+          setEnableXunhuTopUp(enableXunhuTopUp);
+          setXunhuPayMethods(data.xunhu_pay_methods || []);
+          setXunhuMinTopUp(data.xunhu_min_topup || 1);
+
           setMinTopUp(minTopUpValue);
           setTopUpCount(minTopUpValue);
           setTopUpLink(data.topup_link || '');
@@ -980,6 +1026,7 @@ const TopUp = () => {
           creemPreTopUp={creemPreTopUp}
           enableWaffoTopUp={enableWaffoTopUp}
           enableWaffoPancakeTopUp={enableWaffoPancakeTopUp}
+          enableXunhuTopUp={enableXunhuTopUp}
           presetAmounts={presetAmounts}
           selectedPreset={selectedPreset}
           selectPresetAmount={selectPresetAmount}

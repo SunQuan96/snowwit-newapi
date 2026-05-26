@@ -36,6 +36,10 @@ export const PAYMENT_TYPES = {
   CREEM: 'creem',
   WAFFO: 'waffo',
   WAFFO_PANCAKE: 'waffo_pancake',
+  // Note: XunhuPay (虎皮椒) does NOT add new payment-type strings — it
+  // re-uses ALIPAY / WECHAT and is selected by the `enable_xunhu_topup`
+  // flag together with the type. This matches the upstream API where the
+  // channel is decided by the APPID binding, not by an explicit `type`.
 } as const
 
 /**

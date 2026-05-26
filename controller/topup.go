@@ -95,12 +95,51 @@ func GetTopUpInfo(c *gin.Context) {
 		}
 	}
 
+	// XunhuPay (虎皮椒) — surface alipay/wxpay buttons that route through Xunhu.
+	// When Xunhu is enabled, these buttons take precedence over any epay
+	// alipay/wxpay entries (the frontend keys off `enable_xunhu_topup`).
+	enableXunhu := isXunhuTopUpEnabled()
+	xunhuPayMethods := []map[string]string{}
+	if enableXunhu {
+		if setting.XunhuPayMethodEnabled(setting.XunhuPayMethodAlipay) {
+			xunhuPayMethods = append(xunhuPayMethods, map[string]string{
+				"name":      "支付宝",
+				"type":      setting.XunhuPayMethodAlipay,
+				"color":     "#1677FF",
+				"min_topup": strconv.Itoa(setting.XunhuMinTopUp),
+			})
+		}
+		if setting.XunhuPayMethodEnabled(setting.XunhuPayMethodWxpay) {
+			xunhuPayMethods = append(xunhuPayMethods, map[string]string{
+				"name":      "微信支付",
+				"type":      setting.XunhuPayMethodWxpay,
+				"color":     "#07C160",
+				"min_topup": strconv.Itoa(setting.XunhuMinTopUp),
+			})
+		}
+
+		// If epay is not configured AND pay_methods has nothing for the
+		// xunhu types, surface the xunhu ones so the frontend has buttons
+		// to render. (When epay IS configured, the existing payMethods
+		// already include alipay/wxpay; the frontend re-routes them based
+		// on `enable_xunhu_topup` flag.)
+		if !isEpayTopUpEnabled() {
+			payMethods = append(payMethods, xunhuPayMethods...)
+		}
+	}
+
+	xunhuMinTopUp := setting.XunhuMinTopUp
+	if xunhuMinTopUp <= 0 {
+		xunhuMinTopUp = operation_setting.MinTopUp
+	}
+
 	data := gin.H{
 		"enable_online_topup":              isEpayTopUpEnabled(),
 		"enable_stripe_topup":              isStripeTopUpEnabled(),
 		"enable_creem_topup":               isCreemTopUpEnabled(),
 		"enable_waffo_topup":               enableWaffo,
 		"enable_waffo_pancake_topup":       enableWaffoPancake,
+		"enable_xunhu_topup":               enableXunhu,
 		"enable_redemption":                complianceConfirmed,
 		"payment_compliance_confirmed":     complianceConfirmed,
 		"payment_compliance_terms_version": operation_setting.CurrentComplianceTermsVersion,
@@ -112,10 +151,12 @@ func GetTopUpInfo(c *gin.Context) {
 		}(),
 		"creem_products":          setting.CreemProducts,
 		"pay_methods":             payMethods,
+		"xunhu_pay_methods":       xunhuPayMethods,
 		"min_topup":               operation_setting.MinTopUp,
 		"stripe_min_topup":        setting.StripeMinTopUp,
 		"waffo_min_topup":         setting.WaffoMinTopUp,
 		"waffo_pancake_min_topup": setting.WaffoPancakeMinTopUp,
+		"xunhu_min_topup":         xunhuMinTopUp,
 		"amount_options":          operation_setting.GetPaymentSetting().AmountOptions,
 		"discount":                operation_setting.GetPaymentSetting().AmountDiscount,
 		"topup_link":              common.TopUpLink,

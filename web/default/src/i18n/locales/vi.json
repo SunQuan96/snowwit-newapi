@@ -1,4 +1,22 @@
 {
+  "Alipay only": "Chỉ Alipay",
+  "Both (Alipay + WeChat)": "Cả hai (Alipay + WeChat)",
+  "Bound payment channel": "Kênh thanh toán đã liên kết",
+  "Configure at:": "Cấu hình tại:",
+  "Controls which buttons show on the top-up page. Actual channel routing is decided by your APPID binding on XunhuPay side.": "Chỉ điều khiển nút hiển thị; định tuyến thực tế do APPID phía XunhuPay quyết định.",
+  "Displayed to the user in WeChat / Alipay": "Hiển thị cho người dùng trong WeChat / Alipay",
+  "Enable XunhuPay": "Bật XunhuPay",
+  "Gateway address": "Địa chỉ cổng",
+  "Get AppID / AppSecret from XunhuPay console「我的应用」. Gateway address must match「我的支付渠道」 (may differ from api.xunhupay.com). Notify URL is /api/user/xunhu/notify (top-up) and /api/subscription/xunhu/notify (subscription).": "Lấy AppID / AppSecret trong console XunhuPay tại mục「我的应用」. Địa chỉ cổng phải khớp với「我的支付渠道」 (có thể khác api.xunhupay.com). URL thông báo: /api/user/xunhu/notify (nạp tiền) và /api/subscription/xunhu/notify (đăng ký).",
+  "Leave blank to use the default https://api.xunhupay.com. Override if your XunhuPay channel shows a different gateway.": "Để trống dùng mặc định https://api.xunhupay.com. Ghi đè nếu XunhuPay hiển thị cổng khác.",
+  "Leave blank unless updating": "Để trống nếu không thay đổi",
+  "Minimum top-up (USD)": "Số tiền nạp tối thiểu (USD)",
+  "Order title (optional)": "Tiêu đề đơn hàng (tùy chọn)",
+  "Personal-collection gateway for Alipay / WeChat Pay via XunhuPay (虎皮椒). No company registration required.": "Cổng thanh toán cá nhân cho Alipay / WeChat Pay qua XunhuPay (虎皮椒). Không cần đăng ký doanh nghiệp.",
+  "Save XunhuPay settings": "Lưu cài đặt XunhuPay",
+  "Set to 0 to reuse the global Minimum top-up value.": "Đặt 0 để dùng giá trị Số tiền nạp tối thiểu toàn cục.",
+  "Subscription Notify URL:": "URL thông báo (đăng ký):",
+  "Top-up Notify URL:": "URL thông báo (nạp tiền):",
   "translation": {
     "360": "360",
     "1000": "1000",
@@ -4478,5 +4496,9 @@
     "Zhipu": "Zhipu",
     "Zhipu V4": "Zhipu V4",
     "Zoom": "Zoom"
-  }
+  },
+  "Webhook Configuration:": "Cấu hình Webhook:",
+  "WeChat Pay only": "Chỉ WeChat Pay",
+  "When enabled, Alipay / WeChat Pay buttons on the top-up page route to XunhuPay (overriding Epay).": "Khi bật, nút Alipay / WeChat Pay trên trang nạp tiền sẽ đi qua XunhuPay (thay cho Epay).",
+  "XunhuPay Gateway": "Cổng XunhuPay"
 }

@@ -25,11 +25,13 @@ import {
   calculateWaffoPancakeAmount,
   requestPayment,
   requestStripePayment,
+  requestXunhuPayment,
   isApiSuccess,
 } from '../api'
 import {
   isStripePayment,
   isWaffoPancakePayment,
+  isXunhuPaymentType,
   submitPaymentForm,
 } from '../lib'
 
@@ -75,24 +77,40 @@ export function usePayment() {
     []
   )
 
-  // Process payment
+  // Process payment.
+  //
+  // `useXunhu` is asserted by the caller (wallet/index.tsx) based on
+  // `topupInfo.enable_xunhu_topup` + the chosen alipay/wxpay type. Lifting
+  // the flag up keeps this hook pure and avoids importing useTopupInfo
+  // into the hook (circular concerns).
   const processPayment = useCallback(
-    async (topupAmount: number, paymentType: string) => {
+    async (
+      topupAmount: number,
+      paymentType: string,
+      options?: { useXunhu?: boolean }
+    ) => {
       try {
         setProcessing(true)
 
         const isStripe = isStripePayment(paymentType)
         const amount = Math.floor(topupAmount)
+        const useXunhu =
+          !!options?.useXunhu && !isStripe && isXunhuPaymentType(paymentType)
 
         const response = isStripe
           ? await requestStripePayment({
               amount,
               payment_method: 'stripe',
             })
-          : await requestPayment({
-              amount,
-              payment_method: paymentType,
-            })
+          : useXunhu
+            ? await requestXunhuPayment({
+                amount,
+                payment_method: paymentType,
+              })
+            : await requestPayment({
+                amount,
+                payment_method: paymentType,
+              })
 
         if (!isApiSuccess(response)) {
           toast.error(response.message || i18next.t('Payment request failed'))
@@ -106,7 +124,22 @@ export function usePayment() {
           return true
         }
 
-        // Handle non-Stripe payment
+        // Handle XunhuPay: the backend returns a fully-formed pay link
+        // (data.pay_link / response.url); open it directly without a
+        // form-POST (matches the upstream protocol).
+        if (useXunhu) {
+          const xunhuLink =
+            (response.data as { pay_link?: string } | undefined)?.pay_link ||
+            (response as unknown as { url?: string }).url
+          if (xunhuLink) {
+            window.open(xunhuLink, '_blank')
+            toast.success(i18next.t('Redirecting to payment page...'))
+            return true
+          }
+          return false
+        }
+
+        // Handle non-Stripe, non-Xunhu payment (epay form-POST)
         if (!isStripe && response.data) {
           const url = (response as unknown as { url?: string }).url
           if (url) {

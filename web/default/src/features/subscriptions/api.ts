@@ -168,6 +168,24 @@ export async function paySubscriptionEpay(
   }
 }
 
+// XunhuPay (虎皮椒) subscription payment.
+// Backend returns a fully-formed pay URL in data.pay_link / response.url —
+// the dialog opens it directly (no form-POST).
+export async function paySubscriptionXunhu(
+  data: SubscriptionPayRequest & { payment_method: string }
+): Promise<
+  SubscriptionPayResponse & {
+    url?: string
+    data?: { pay_link?: string; url_qrcode?: string; open_order_id?: string }
+  }
+> {
+  const res = await api.post('/api/subscription/xunhu/pay', data)
+  return {
+    ...res.data,
+    url: res.data.url || (res as unknown as { url?: string }).url,
+  }
+}
+
 // ============================================================================
 // User Self Subscriptions
 // ============================================================================
