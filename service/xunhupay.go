@@ -143,6 +143,13 @@ type xunhuResponseEnvelope struct {
 	Errmsg  string                 `json:"errmsg"`
 	Hash    string                 `json:"hash"`
 	Data    map[string]interface{} `json:"data"`
+
+	// The current official XunhuPay API returns these fields at the top level.
+	// Some bundled integration examples use a nested `data` object instead, so
+	// CreatePayment reads both shapes.
+	URL         string `json:"url"`
+	URLQrcode   string `json:"url_qrcode"`
+	OpenOrderID string `json:"open_order_id"`
 }
 
 // ---------------------------------------------------------------------------
@@ -190,17 +197,14 @@ func (c *XunhuClient) CreatePayment(ctx context.Context, req *XunhuCreatePayment
 		return nil, fmt.Errorf("xunhupay errcode=%d errmsg=%s", envelope.Errcode, envelope.Errmsg)
 	}
 
-	out := &XunhuCreatePaymentData{}
-	if v, ok := envelope.Data["url"].(string); ok {
-		out.URL = v
-	}
-	if v, ok := envelope.Data["url_qrcode"].(string); ok {
-		out.URLQrcode = v
-	}
-	if v, ok := envelope.Data["open_order_id"].(string); ok {
-		out.OpenOrderID = v
+	out := &XunhuCreatePaymentData{
+		URL:         firstNonEmpty(envelope.URL, stringFromMap(envelope.Data, "url"), stringFromMap(envelope.Data, "pay_url"), stringFromMap(envelope.Data, "pay_link")),
+		URLQrcode:   firstNonEmpty(envelope.URLQrcode, stringFromMap(envelope.Data, "url_qrcode")),
+		OpenOrderID: firstNonEmpty(envelope.OpenOrderID, stringFromMap(envelope.Data, "open_order_id")),
 	}
 	if out.URL == "" {
+		raw, _ := common.Marshal(envelope)
+		common.SysError(fmt.Sprintf("xunhupay response missing pay url raw=%s", string(raw)))
 		return nil, errors.New("xunhupay response missing pay url")
 	}
 	return out, nil
@@ -303,6 +307,7 @@ func (c *XunhuClient) postJSON(ctx context.Context, path string, params map[stri
 	}
 	httpReq.Header.Set("Content-Type", "application/json;charset=UTF-8")
 	httpReq.Header.Set("Accept", "application/json")
+	httpReq.Header.Set("User-Agent", "snowwit-newapi/1.0")
 
 	httpClient := c.Client
 	if httpClient == nil {
@@ -311,6 +316,7 @@ func (c *XunhuClient) postJSON(ctx context.Context, path string, params map[stri
 
 	resp, err := httpClient.Do(httpReq)
 	if err != nil {
+		common.SysError(fmt.Sprintf("xunhupay http failed url=%s err=%s", endpoint, err.Error()))
 		return nil, fmt.Errorf("xunhupay http: %w", err)
 	}
 	defer resp.Body.Close()
@@ -322,8 +328,39 @@ func (c *XunhuClient) postJSON(ctx context.Context, path string, params map[stri
 
 	envelope := &xunhuResponseEnvelope{}
 	if err := common.Unmarshal(respBody, envelope); err != nil {
-		common.SysError(fmt.Sprintf("xunhupay decode failed url=%s body=%s err=%s", endpoint, string(respBody), err.Error()))
-		return nil, fmt.Errorf("xunhupay decode: %w", err)
+		bodySnippet := string(respBody)
+		if len(bodySnippet) > 500 {
+			bodySnippet = bodySnippet[:500] + "..."
+		}
+		common.SysError(fmt.Sprintf("xunhupay decode failed url=%s status=%d ctype=%s body=%s err=%s", endpoint, resp.StatusCode, resp.Header.Get("Content-Type"), bodySnippet, err.Error()))
+		return nil, fmt.Errorf("xunhupay decode: %w (status=%d)", err, resp.StatusCode)
 	}
 	return envelope, nil
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if strings.TrimSpace(value) != "" {
+			return value
+		}
+	}
+	return ""
+}
+
+func stringFromMap(data map[string]interface{}, key string) string {
+	if len(data) == 0 {
+		return ""
+	}
+	value, ok := data[key]
+	if !ok {
+		return ""
+	}
+	switch typed := value.(type) {
+	case string:
+		return typed
+	case fmt.Stringer:
+		return typed.String()
+	default:
+		return fmt.Sprintf("%v", typed)
+	}
 }
