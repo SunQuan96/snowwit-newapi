@@ -35,6 +35,7 @@ import {
   getServerAddress,
   encodeChannelConnectionString,
 } from '../../helpers/token';
+import { parseTokenSearchQuery } from '../../helpers/tokenPage';
 
 export const useTokensData = (openFluentNotification, openCCSwitchModal) => {
   const { t } = useTranslation();
@@ -64,6 +65,7 @@ export const useTokensData = (openFluentNotification, openCCSwitchModal) => {
   const [resolvedTokenKeys, setResolvedTokenKeys] = useState({});
   const [loadingTokenKeys, setLoadingTokenKeys] = useState({});
   const keyRequestsRef = useRef({});
+  const activeSearchRef = useRef({ searchKeyword: '', searchToken: '' });
 
   // Form state
   const [formApi, setFormApi] = useState(null);
@@ -116,7 +118,11 @@ export const useTokensData = (openFluentNotification, openCCSwitchModal) => {
 
   // Refresh function
   const refresh = async (page = activePage) => {
-    await loadTokens(page);
+    if (searchMode) {
+      await searchTokens(page, pageSize, activeSearchRef.current);
+    } else {
+      await loadTokens(page, pageSize);
+    }
     setSelectedKeys([]);
   };
 
@@ -304,18 +310,31 @@ export const useTokensData = (openFluentNotification, openCCSwitchModal) => {
   };
 
   // Search tokens function
-  const searchTokens = async (page = 1, size = pageSize) => {
+  const searchTokens = async (page = 1, size = pageSize, overrides = null) => {
     const normalizedPage = Number.isInteger(page) && page > 0 ? page : 1;
     const normalizedSize =
       Number.isInteger(size) && size > 0 ? size : pageSize;
 
-    const { searchKeyword, searchToken } = getFormValues();
+    let searchKeyword = '';
+    let searchToken = '';
+    if (overrides) {
+      searchKeyword = overrides.searchKeyword || '';
+      searchToken = overrides.searchToken || '';
+    } else {
+      const formValues = getFormValues();
+      searchKeyword = formValues.searchKeyword || '';
+      searchToken = formValues.searchToken || '';
+    }
+
+    activeSearchRef.current = { searchKeyword, searchToken };
+
     if (searchKeyword === '' && searchToken === '') {
       setSearchMode(false);
-      await loadTokens(1);
+      await loadTokens(normalizedPage, normalizedSize);
       return;
     }
     setSearching(true);
+    setLoading(true);
     const res = await API.get(
       `/api/token/search?keyword=${encodeURIComponent(searchKeyword)}&token=${encodeURIComponent(searchToken)}&p=${normalizedPage}&size=${normalizedSize}`,
     );
@@ -327,6 +346,12 @@ export const useTokensData = (openFluentNotification, openCCSwitchModal) => {
       showError(message);
     }
     setSearching(false);
+    setLoading(false);
+  };
+
+  const runSearchByQuery = async (query, page = 1, size = pageSize) => {
+    const { searchKeyword, searchToken } = parseTokenSearchQuery(query);
+    await searchTokens(page, size, { searchKeyword, searchToken });
   };
 
   // Sort tokens function
@@ -469,6 +494,7 @@ export const useTokensData = (openFluentNotification, openCCSwitchModal) => {
     tokenCount,
     pageSize,
     searching,
+    searchMode,
     groupRatios,
 
     // Selection state
@@ -507,6 +533,7 @@ export const useTokensData = (openFluentNotification, openCCSwitchModal) => {
     onOpenLink,
     manageToken,
     searchTokens,
+    runSearchByQuery,
     sortToken,
     handlePageChange,
     handlePageSizeChange,

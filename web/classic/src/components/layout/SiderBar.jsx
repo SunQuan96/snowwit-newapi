@@ -42,7 +42,8 @@ const routerMap = {
   midjourney: '/console/midjourney',
   setting: '/console/setting',
   about: '/about',
-  detail: '/console',
+  workbench: '/console',
+  detail: '/console/detail',
   pricing: '/pricing',
   task: '/console/task',
   models: '/console/models',
@@ -71,9 +72,14 @@ const SiderBar = ({ onNavigate = () => {} }) => {
   const workspaceItems = useMemo(() => {
     const items = [
       {
+        text: t('工作台'),
+        itemKey: 'workbench',
+        to: '/console',
+      },
+      {
         text: t('数据看板'),
         itemKey: 'detail',
-        to: '/detail',
+        to: '/console/detail',
         className:
           localStorage.getItem('enable_data_export') === 'true'
             ? ''

@@ -17,34 +17,43 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Notification,
   Button,
+  ButtonGroup,
+  Input,
   Space,
   Toast,
-  Typography,
   Select,
+  Tooltip,
 } from '@douyinfe/semi-ui';
+import { IconSearch } from '@douyinfe/semi-icons';
 import {
   API,
   showError,
   getModelCategories,
   selectFilter,
 } from '../../../helpers';
-import CardPro from '../../common/ui/CardPro';
-import TokensTable from './TokensTable';
-import TokensActions from './TokensActions';
+import { getServerAddress, fetchTokenKey } from '../../../helpers/token';
+import { formatApiKey } from '../../../helpers/defaultToken';
+import { createCardProPagination } from '../../../helpers/utils';
 import TokensFilters from './TokensFilters';
-import TokensDescription from './TokensDescription';
+import TokenPageHeader from './TokenPageHeader';
+import TokenHintCard from './TokenHintCard';
+import TokenKeyCardList from './TokenKeyCardList';
+import TokensTable from './TokensTable';
 import EditTokenModal from './modals/EditTokenModal';
 import CCSwitchModal from './modals/CCSwitchModal';
+import TokenCreatedSuccessModal from './modals/TokenCreatedSuccessModal';
+import IntegrationGuideModal from '../../dashboard/workbench/IntegrationGuideModal';
 import { useTokensData } from '../../../hooks/tokens/useTokensData';
+import { useDefaultToken } from '../../../hooks/tokens/useDefaultToken';
 import { useIsMobile } from '../../../hooks/common/useIsMobile';
-import { createCardProPagination } from '../../../helpers/utils';
+import { TOKEN_STATUS, matchesTokenStatusFilter } from '../../../helpers/tokenPage';
+import { LayoutGrid, Plus, Rows3 } from 'lucide-react';
 
 function TokensPage() {
-  // Define the function first, then pass it into the hook to avoid TDZ errors
   const openFluentNotificationRef = useRef(null);
   const openCCSwitchModalRef = useRef(null);
   const tokensData = useTokensData(
@@ -66,6 +75,30 @@ function TokensPage() {
   const [prefillKey, setPrefillKey] = useState('');
   const [ccSwitchVisible, setCCSwitchVisible] = useState(false);
   const [ccSwitchKey, setCCSwitchKey] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState(TOKEN_STATUS.ALL);
+  const [viewMode, setViewMode] = useState(() => {
+    try {
+      const saved = localStorage.getItem('tokens:view_mode');
+      return saved === 'table' ? 'table' : 'cards';
+    } catch {
+      return 'cards';
+    }
+  });
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem('tokens:view_mode', mode);
+    } catch {
+      // ignore storage errors
+    }
+  };
+  const [guideVisible, setGuideVisible] = useState(false);
+  const [baseUrl, setBaseUrl] = useState('');
+  const [createdSuccess, setCreatedSuccess] = useState(null);
+  const skipInitialSearchRef = useRef(true);
+  const pageRef = useRef(null);
+  const [scrolled, setScrolled] = useState(false);
 
   // Keep latest data for handlers inside notifications
   useEffect(() => {
@@ -346,6 +379,27 @@ function TokensPage() {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    setBaseUrl(getServerAddress());
+  }, []);
+
+  useEffect(() => {
+    const el = pageRef.current;
+    if (!el) return;
+    // Walk up to find the scrollable ancestor
+    let scrollEl = el.parentElement;
+    while (scrollEl && scrollEl !== document.body) {
+      const style = window.getComputedStyle(scrollEl);
+      const overflow = style.overflow + style.overflowY;
+      if (/auto|scroll/.test(overflow)) break;
+      scrollEl = scrollEl.parentElement;
+    }
+    if (!scrollEl || scrollEl === document.body) return;
+    const onScroll = () => setScrolled(scrollEl.scrollTop > 200);
+    scrollEl.addEventListener('scroll', onScroll, { passive: true });
+    return () => scrollEl.removeEventListener('scroll', onScroll);
+  }, []);
+
   const {
     // Edit state
     showEdit,
@@ -353,35 +407,188 @@ function TokensPage() {
     closeEdit,
     refresh,
 
-    // Actions state
-    selectedKeys,
     setEditingToken,
     setShowEdit,
-    batchCopyTokens,
-    batchDeleteTokens,
 
-    // Filters state
-    formInitValues,
-    setFormApi,
-    searchTokens,
     loading,
     searching,
-
-    // Description state
-    compactMode,
-    setCompactMode,
+    searchMode,
 
     // Translation
     t,
+    tokens,
+    activePage,
+    pageSize,
+    tokenCount,
+    handlePageChange,
+    handlePageSizeChange,
+    copyTokenKey,
+    manageToken,
+    onOpenLink,
+    runSearchByQuery,
+    loadingTokenKeys,
   } = tokensData;
 
+  const filteredTokens = useMemo(
+    () => tokens.filter((r) => matchesTokenStatusFilter(r, statusFilter)),
+    [tokens, statusFilter],
+  );
+  const filteredCount = filteredTokens.length;
+
+  const hasActiveFilters =
+    Boolean(searchQuery.trim()) || statusFilter !== TOKEN_STATUS.ALL;
+
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setStatusFilter(TOKEN_STATUS.ALL);
+    runSearchByQuery('', 1, pageSize);
+  };
+
+  useEffect(() => {
+    if (skipInitialSearchRef.current) {
+      skipInitialSearchRef.current = false;
+      return;
+    }
+    const timer = setTimeout(() => {
+      runSearchByQuery(searchQuery, 1, pageSize);
+    }, 350);
+    return () => clearTimeout(timer);
+    // pageSize 变更由 handlePageSizeChange 处理，此处仅响应搜索词
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
+
+  const handleCreate = () => {
+    setEditingToken({ id: undefined });
+    setShowEdit(true);
+  };
+
+  const {
+    defaultToken,
+    setAsDefault,
+    isDefault,
+    copyAccessPackage,
+  } = useDefaultToken(tokens, baseUrl, t);
+
+  const handleTokenCreated = async ({ name }) => {
+    try {
+      await refresh();
+      const res = await API.get(
+        `/api/token/search?keyword=${encodeURIComponent(name)}&token=&p=1&size=10`,
+      );
+      const { success, message, data } = res.data || {};
+      if (!success) {
+        showError(message || t('获取新 Key 失败'));
+        return;
+      }
+      const items = data?.items || [];
+      const token = items.find((item) => item.name === name) || items[0];
+      if (!token?.id) {
+        showError(t('获取新 Key 失败'));
+        return;
+      }
+      setAsDefault(token.id);
+      const key = await fetchTokenKey(token.id);
+      setCreatedSuccess({
+        tokenName: name,
+        apiKey: formatApiKey(key),
+        tokenId: token.id,
+      });
+    } catch (error) {
+      showError(error?.message || t('获取新 Key 失败'));
+    }
+  };
+
+  const paginationNode = createCardProPagination({
+    currentPage: activePage,
+    pageSize,
+    total: tokenCount,
+    onPageChange: handlePageChange,
+    onPageSizeChange: handlePageSizeChange,
+    isMobile,
+    t,
+  });
+
+  const wrapViewModeTooltip = (label, node) =>
+    isMobile ? node : <Tooltip content={label}>{node}</Tooltip>;
+
+  const renderViewModeButton = (label, mode, icon) =>
+    wrapViewModeTooltip(
+      label,
+      <Button
+        size='large'
+        theme={viewMode === mode ? 'solid' : 'light'}
+        type={viewMode === mode ? 'primary' : 'tertiary'}
+        onClick={() => handleViewModeChange(mode)}
+        aria-label={label}
+        aria-pressed={viewMode === mode}
+        icon={icon}
+        className={isMobile ? '!rounded-xl' : undefined}
+      />,
+    );
+
+  const viewModeSwitcher = isMobile ? (
+    <div
+      className='inline-flex items-center gap-1.5'
+      role='group'
+      aria-label={t('视图模式')}
+    >
+      {renderViewModeButton(t('卡片视图'), 'cards', <LayoutGrid size={16} />)}
+      {renderViewModeButton(t('表格视图'), 'table', <Rows3 size={16} />)}
+    </div>
+  ) : (
+    <ButtonGroup className='!rounded-xl' aria-label={t('视图模式')}>
+      {renderViewModeButton(t('卡片视图'), 'cards', <LayoutGrid size={16} />)}
+      {renderViewModeButton(t('表格视图'), 'table', <Rows3 size={16} />)}
+    </ButtonGroup>
+  );
+
   return (
-    <>
+    <div ref={pageRef} className='max-w-6xl mx-auto pb-8'>
+      {/* Sticky floating action bar — appears after scrolling 200px */}
+      <div
+        className={`fixed top-16 left-0 right-0 z-50 flex justify-center pointer-events-none transition-all duration-200 ${
+          scrolled ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+        }`}
+        aria-hidden={!scrolled}
+      >
+        <div className='pointer-events-auto mx-4 w-full max-w-2xl flex items-center gap-2 px-3 py-2 rounded-2xl bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md shadow-lg border border-zinc-200/60 dark:border-zinc-700/60'>
+          <Input
+            prefix={<IconSearch />}
+            placeholder={t('搜索名称或密钥（支持 sk- 前缀）')}
+            value={searchQuery}
+            onChange={setSearchQuery}
+            showClear
+            size='default'
+            className='!rounded-xl flex-1'
+          />
+          <Button
+            theme='solid'
+            type='primary'
+            icon={<Plus size={15} />}
+            onClick={handleCreate}
+            className='!rounded-full shrink-0'
+          >
+            {t('创建 API Key')}
+          </Button>
+        </div>
+      </div>
+
       <EditTokenModal
         refresh={refresh}
         editingToken={editingToken}
         visiable={showEdit}
         handleClose={closeEdit}
+        onCreated={handleTokenCreated}
+      />
+
+      <TokenCreatedSuccessModal
+        visible={Boolean(createdSuccess)}
+        tokenName={createdSuccess?.tokenName}
+        apiKey={createdSuccess?.apiKey}
+        baseUrl={baseUrl}
+        onClose={() => setCreatedSuccess(null)}
+        onOpenGuide={() => setGuideVisible(true)}
+        t={t}
       />
 
       <CCSwitchModal
@@ -391,52 +598,77 @@ function TokensPage() {
         modelOptions={modelOptions}
       />
 
-      <CardPro
-        type='type1'
-        descriptionArea={
-          <TokensDescription
-            compactMode={compactMode}
-            setCompactMode={setCompactMode}
-            t={t}
-          />
-        }
-        actionsArea={
-          <div className='flex flex-col md:flex-row justify-between items-center gap-2 w-full'>
-            <TokensActions
-              selectedKeys={selectedKeys}
-              setEditingToken={setEditingToken}
-              setShowEdit={setShowEdit}
-              batchCopyTokens={batchCopyTokens}
-              batchDeleteTokens={batchDeleteTokens}
-              t={t}
-            />
+      <IntegrationGuideModal
+        visible={guideVisible}
+        onClose={() => setGuideVisible(false)}
+        baseUrl={baseUrl}
+        t={t}
+      />
 
-            <div className='w-full md:w-full lg:w-auto order-1 md:order-2'>
-              <TokensFilters
-                formInitValues={formInitValues}
-                setFormApi={setFormApi}
-                searchTokens={searchTokens}
-                loading={loading}
-                searching={searching}
-                t={t}
-              />
-            </div>
-          </div>
-        }
-        paginationArea={createCardProPagination({
-          currentPage: tokensData.activePage,
-          pageSize: tokensData.pageSize,
-          total: tokensData.tokenCount,
-          onPageChange: tokensData.handlePageChange,
-          onPageSizeChange: tokensData.handlePageSizeChange,
-          isMobile: isMobile,
-          t: tokensData.t,
-        })}
-        t={tokensData.t}
-      >
-        <TokensTable {...tokensData} />
-      </CardPro>
-    </>
+      <TokenPageHeader
+        onCreate={handleCreate}
+        t={t}
+        totalCount={tokenCount}
+      />
+
+      <TokenHintCard
+        baseUrl={baseUrl}
+        defaultToken={defaultToken}
+        onOpenGuide={() => setGuideVisible(true)}
+        onCopyAccessPackage={() => copyAccessPackage()}
+        t={t}
+      />
+
+      <TokensFilters
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        onResetFilters={handleResetFilters}
+        searching={searching}
+        searchMode={searchMode}
+        tokenCount={tokenCount}
+        pageTokenCount={tokens.length}
+        filteredCount={filteredCount}
+        hasActiveFilters={hasActiveFilters}
+        rightSlot={viewModeSwitcher}
+        t={t}
+      />
+
+      {viewMode === 'cards' ? (
+        <TokenKeyCardList
+          tokens={tokens}
+          loading={loading}
+          searchQuery={searchQuery}
+          searchMode={searchMode}
+          statusFilter={statusFilter}
+          onCreate={handleCreate}
+          onResetFilters={handleResetFilters}
+          t={t}
+          copyTokenKey={copyTokenKey}
+          manageToken={manageToken}
+          refresh={refresh}
+          setEditingToken={setEditingToken}
+          setShowEdit={setShowEdit}
+          onOpenLink={onOpenLink}
+          loadingTokenKeys={loadingTokenKeys}
+          defaultTokenId={defaultToken?.id}
+          isDefault={isDefault}
+          onSetDefault={setAsDefault}
+          onCopyAccessPackage={copyAccessPackage}
+        />
+      ) : (
+        <TokensTable
+          {...tokensData}
+          tokens={filteredTokens}
+          compactMode={true}
+        />
+      )}
+
+      {paginationNode ? (
+        <div className='mt-6 flex justify-center md:justify-end'>{paginationNode}</div>
+      ) : null}
+    </div>
   );
 }
 

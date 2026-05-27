@@ -17,89 +17,121 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useRef } from 'react';
-import { Form, Button } from '@douyinfe/semi-ui';
+import React from 'react';
+import { Button, Input, Spin, Typography } from '@douyinfe/semi-ui';
 import { IconSearch } from '@douyinfe/semi-icons';
+import { TOKEN_STATUS } from '../../../helpers/tokenPage';
+
+const { Text } = Typography;
+
+const STATUS_CHIPS = (t) => [
+  { value: TOKEN_STATUS.ALL, label: t('全部') },
+  { value: TOKEN_STATUS.ENABLED, label: t('已启用') },
+  { value: TOKEN_STATUS.DISABLED, label: t('已禁用') },
+  { value: TOKEN_STATUS.EXPIRED, label: t('已过期') },
+  { value: TOKEN_STATUS.EXHAUSTED, label: t('已耗尽') },
+];
 
 const TokensFilters = ({
-  formInitValues,
-  setFormApi,
-  searchTokens,
-  loading,
+  searchQuery,
+  onSearchQueryChange,
+  statusFilter,
+  onStatusFilterChange,
+  onResetFilters,
   searching,
+  searchMode,
+  tokenCount,
+  pageTokenCount,
+  filteredCount,
+  hasActiveFilters,
+  rightSlot = null,
   t,
 }) => {
-  // Handle form reset and immediate search
-  const formApiRef = useRef(null);
+  const showFilteredHint =
+    statusFilter !== TOKEN_STATUS.ALL &&
+    pageTokenCount > 0 &&
+    filteredCount !== pageTokenCount;
 
-  const handleReset = () => {
-    if (!formApiRef.current) return;
-    formApiRef.current.reset();
-    setTimeout(() => {
-      searchTokens();
-    }, 100);
-  };
+  const chips = STATUS_CHIPS(t);
 
   return (
-    <Form
-      initValues={formInitValues}
-      getFormApi={(api) => {
-        setFormApi(api);
-        formApiRef.current = api;
-      }}
-      onSubmit={() => searchTokens(1)}
-      allowEmpty={true}
-      autoComplete='off'
-      layout='horizontal'
-      trigger='change'
-      stopValidateWithError={false}
-      className='w-full md:w-auto order-1 md:order-2'
-    >
-      <div className='flex flex-col md:flex-row items-center gap-2 w-full md:w-auto'>
-        <div className='relative w-full md:w-56'>
-          <Form.Input
-            field='searchKeyword'
+    <div className='mb-5 space-y-3'>
+      <div className='flex flex-col md:flex-row gap-3'>
+        <div className='flex-1 min-w-0 relative'>
+          <Input
             prefix={<IconSearch />}
-            placeholder={t('搜索关键字')}
+            placeholder={t('搜索名称或密钥（支持 sk- 前缀）')}
+            value={searchQuery}
+            onChange={onSearchQueryChange}
             showClear
-            pure
-            size='small'
+            size='large'
+            className='!rounded-xl'
           />
+          {searching ? (
+            <div className='absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none'>
+              <Spin size='small' />
+            </div>
+          ) : null}
         </div>
-
-        <div className='relative w-full md:w-56'>
-          <Form.Input
-            field='searchToken'
-            prefix={<IconSearch />}
-            placeholder={t('密钥')}
-            showClear
-            pure
-            size='small'
-          />
-        </div>
-
-        <div className='flex gap-2 w-full md:w-auto'>
-          <Button
-            type='tertiary'
-            htmlType='submit'
-            loading={loading || searching}
-            className='flex-1 md:flex-initial md:w-auto'
-            size='small'
-          >
-            {t('查询')}
-          </Button>
-
-          <Button
-            type='tertiary'
-            onClick={handleReset}
-            className='flex-1 md:flex-initial md:w-auto'
-            size='small'
-          >
-            {t('重置')}
-          </Button>
+        <div className='flex items-center gap-2 shrink-0'>
+          {hasActiveFilters ? (
+            <Button
+              type='tertiary'
+              size='large'
+              onClick={onResetFilters}
+              className='!rounded-xl'
+            >
+              {t('重置筛选')}
+            </Button>
+          ) : null}
+          {rightSlot}
         </div>
       </div>
-    </Form>
+
+      <div
+        className='flex items-center gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-thin'
+        role='tablist'
+        aria-label={t('状态筛选')}
+      >
+        {chips.map((chip) => {
+          const active = statusFilter === chip.value;
+          return (
+            <Button
+              key={chip.value}
+              size='small'
+              theme={active ? 'solid' : 'light'}
+              type={active ? 'primary' : 'tertiary'}
+              onClick={() => onStatusFilterChange(chip.value)}
+              className='!rounded-full shrink-0'
+              role='tab'
+              aria-selected={active}
+            >
+              {chip.label}
+            </Button>
+          );
+        })}
+      </div>
+
+      <div className='flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-semi-color-text-2'>
+        {searchMode && searchQuery.trim() ? (
+          <Text type='tertiary' size='small'>
+            {t('搜索到 {{count}} 个 API Key', { count: tokenCount })}
+          </Text>
+        ) : (
+          <Text type='tertiary' size='small'>
+            {t('共 {{count}} 个 API Key', { count: tokenCount })}
+          </Text>
+        )}
+        {showFilteredHint ? (
+          <Text type='tertiary' size='small'>
+            {t('当前页显示 {{filtered}} / {{total}}', {
+              filtered: filteredCount,
+              total: pageTokenCount,
+            })}
+          </Text>
+        ) : null}
+      </div>
+    </div>
   );
 };
 

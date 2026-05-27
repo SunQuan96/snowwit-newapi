@@ -170,7 +170,7 @@ const CardTable = ({
               <span className='font-medium text-gray-600 mr-2 whitespace-nowrap select-none'>
                 {title}
               </span>
-              <div className='flex-1 break-all flex justify-end items-center gap-1'>
+              <div className='flex-1 min-w-0 max-w-[65%] sm:max-w-none break-all flex justify-end items-center gap-1 overflow-hidden'>
                 {cellContent !== undefined && cellContent !== null
                   ? cellContent
                   : '-'}

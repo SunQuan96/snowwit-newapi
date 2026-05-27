@@ -94,9 +94,13 @@ export const useLogsData = () => {
   // Form state
   const [formApi, setFormApi] = useState(null);
   let now = new Date();
+  const initialTokenNameFromUrl = (() => {
+    if (typeof window === 'undefined') return '';
+    return new URLSearchParams(window.location.search).get('token_name') || '';
+  })();
   const formInitValues = {
     username: '',
-    token_name: '',
+    token_name: initialTokenNameFromUrl,
     model_name: '',
     channel: '',
     group: '',
@@ -726,10 +730,17 @@ export const useLogsData = () => {
   };
 
   // Load logs function
-  const loadLogs = async (startIdx, pageSize, customLogType = null) => {
+  const loadLogs = async (
+    startIdx,
+    pageSize,
+    customLogType = null,
+    formOverrides = null,
+  ) => {
     setLoading(true);
 
     let url = '';
+    const formValues = getFormValues();
+    const mergedForm = { ...formValues, ...(formOverrides || {}) };
     const {
       username,
       token_name,
@@ -740,7 +751,7 @@ export const useLogsData = () => {
       group,
       request_id,
       logType: formLogType,
-    } = getFormValues();
+    } = mergedForm;
 
     const currentLogType =
       customLogType !== null
@@ -811,7 +822,14 @@ export const useLogsData = () => {
     const localPageSize =
       parseInt(localStorage.getItem('page-size')) || ITEMS_PER_PAGE;
     setPageSize(localPageSize);
-    loadLogs(activePage, localPageSize)
+    const tokenName =
+      new URLSearchParams(window.location.search).get('token_name') || '';
+    loadLogs(
+      activePage,
+      localPageSize,
+      null,
+      tokenName ? { token_name: tokenName } : null,
+    )
       .then()
       .catch((reason) => {
         showError(reason);
@@ -821,6 +839,11 @@ export const useLogsData = () => {
   // Initialize statistics when formApi is available
   useEffect(() => {
     if (formApi) {
+      const params = new URLSearchParams(window.location.search);
+      const tokenName = params.get('token_name');
+      if (tokenName) {
+        formApi.setValues({ ...formApi.getValues(), token_name: tokenName });
+      }
       handleEyeClick();
     }
   }, [formApi]);

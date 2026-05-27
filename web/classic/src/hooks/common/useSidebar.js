@@ -33,6 +33,7 @@ export const DEFAULT_ADMIN_CONFIG = {
   },
   console: {
     enabled: true,
+    workbench: true,
     detail: true,
     token: true,
     log: true,

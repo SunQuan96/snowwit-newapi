@@ -121,6 +121,14 @@ if (isMobileScreen) {
 
 export function showError(error) {
   console.error(error);
+  if (error == null) {
+    Toast.error('错误：未知错误');
+    return;
+  }
+  if (typeof error === 'string') {
+    Toast.error('错误：' + error);
+    return;
+  }
   if (error.message) {
     if (error.name === 'AxiosError') {
       switch (error.response.status) {

@@ -253,6 +253,7 @@ const EditTokenModal = (props) => {
     } else {
       const count = parseInt(values.tokenCount, 10) || 1;
       let successCount = 0;
+      let lastCreatedName = null;
       for (let i = 0; i < count; i++) {
         let { tokenCount: _tc, ...localInputs } = values;
         const baseName =
@@ -286,15 +287,22 @@ const EditTokenModal = (props) => {
         const { success, message } = res.data;
         if (success) {
           successCount++;
+          lastCreatedName = localInputs.name;
         } else {
           showError(t(message));
           break;
         }
       }
       if (successCount > 0) {
-        showSuccess(t('令牌创建成功，请在列表页面点击复制获取令牌！'));
         props.refresh();
         props.handleClose();
+        if (successCount === 1 && lastCreatedName && props.onCreated) {
+          props.onCreated({ name: lastCreatedName });
+        } else {
+          showSuccess(
+            t('已创建 {{count}} 个 API Key', { count: successCount }),
+          );
+        }
       }
     }
     setLoading(false);

@@ -65,6 +65,7 @@ import {
 
 import {
   LayoutDashboard,
+  Home,
   TerminalSquare,
   MessageSquare,
   Key,
@@ -121,6 +122,8 @@ export function getLucideIcon(key, selected = false) {
 
   // 根据不同的key返回不同的图标
   switch (key) {
+    case 'workbench':
+      return <Home {...commonProps} color={iconColor} />;
     case 'detail':
       return <LayoutDashboard {...commonProps} color={iconColor} />;
     case 'playground':
@@ -780,9 +783,12 @@ export function renderText(text, limit) {
 /**
  * Render group tags based on the input group string
  * @param {string} group - The input group string
+ * @param {{ copyOnClick?: boolean }} [options] - copyOnClick: 点击标签复制分组名（默认 true）
  * @returns {JSX.Element} - The rendered group tags
  */
-export function renderGroup(group) {
+export function renderGroup(group, options = {}) {
+  const { copyOnClick = true } = options;
+
   if (group === '') {
     return (
         <Tag key='default' color='white' shape='circle'>
@@ -800,26 +806,34 @@ export function renderGroup(group) {
 
   const groups = group.split(',').sort();
 
+  const handleCopy =
+    copyOnClick &&
+    (async (event, groupName) => {
+      event.stopPropagation();
+      if (await copy(groupName)) {
+        showSuccess(i18next.t('已复制：') + groupName);
+      } else {
+        Modal.error({
+          title: i18next.t('无法复制到剪贴板，请手动复制'),
+          content: groupName,
+        });
+      }
+    });
+
   return (
       <span key={group}>
-      {groups.map((group) => (
+      {groups.map((groupName) => (
           <Tag
-              color={tagColors[group] || stringToColor(group)}
-              key={group}
+              color={tagColors[groupName] || stringToColor(groupName)}
+              key={groupName}
               shape='circle'
-              onClick={async (event) => {
-                event.stopPropagation();
-                if (await copy(group)) {
-                  showSuccess(i18next.t('已复制：') + group);
-                } else {
-                  Modal.error({
-                    title: i18next.t('无法复制到剪贴板，请手动复制'),
-                    content: group,
-                  });
-                }
-              }}
+              onClick={
+                handleCopy
+                  ? (event) => handleCopy(event, groupName)
+                  : undefined
+              }
           >
-            {group}
+            {groupName}
           </Tag>
       ))}
     </span>

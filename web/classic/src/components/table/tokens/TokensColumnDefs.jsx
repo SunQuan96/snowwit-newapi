@@ -46,6 +46,9 @@ import {
   IconEyeOpened,
   IconEyeClosed,
 } from '@douyinfe/semi-icons';
+import StatusPill from '../../common/ui/StatusPill';
+import { getTokenStatusMeta } from '../../../helpers/tokenPage';
+import { useIsMobile } from '../../../hooks/common/useIsMobile';
 
 // progress color helper
 const getProgressColor = (pct) => {
@@ -62,28 +65,11 @@ function renderTimestamp(timestamp) {
 
 // Render status column only (no usage)
 const renderStatus = (text, record, t) => {
-  const enabled = text === 1;
-
-  let tagColor = 'black';
-  let tagText = t('未知状态');
-  if (enabled) {
-    tagColor = 'green';
-    tagText = t('已启用');
-  } else if (text === 2) {
-    tagColor = 'red';
-    tagText = t('已禁用');
-  } else if (text === 3) {
-    tagColor = 'yellow';
-    tagText = t('已过期');
-  } else if (text === 4) {
-    tagColor = 'grey';
-    tagText = t('已耗尽');
-  }
-
+  const meta = getTokenStatusMeta(text, t);
   return (
-    <Tag color={tagColor} shape='circle' size='small'>
-      {tagText}
-    </Tag>
+    <StatusPill tone={meta.tone} size='small' variant='solid'>
+      {meta.label}
+    </StatusPill>
   );
 };
 
@@ -107,7 +93,7 @@ const renderGroupColumn = (text, record, t, groupRatios = {}) => {
   const ratio = groupRatios[text];
   return (
     <span className='flex items-center gap-1'>
-      {renderGroup(text)}
+      {renderGroup(text, { copyOnClick: false })}
       {ratio !== undefined && (
         <Tag size='small' color='green' shape='circle'>
           {ratio}x
@@ -294,31 +280,76 @@ const renderAllowIps = (text, t) => {
   return <Space wrap>{ipTags}</Space>;
 };
 
-// Render separate quota usage column
-const renderQuotaUsage = (text, record, t) => {
+const QuotaUsageCell = ({ record, t }) => {
+  const isMobile = useIsMobile();
   const { Paragraph } = Typography;
-  const used = parseInt(record.used_quota) || 0;
-  const remain = parseInt(record.remain_quota) || 0;
+  const used = parseInt(record.used_quota, 10) || 0;
+  const remain = parseInt(record.remain_quota, 10) || 0;
   const total = used + remain;
+
   if (record.unlimited_quota) {
+    if (isMobile) {
+      return (
+        <div className='flex flex-col items-end gap-0.5 min-w-0 max-w-full'>
+          <Tag color='white' shape='circle' className='!max-w-full'>
+            {t('无限额度')}
+          </Tag>
+          <span className='text-[11px] text-semi-color-text-2 tabular-nums text-right'>
+            {t('已用额度')}: {renderQuota(used)}
+          </span>
+        </div>
+      );
+    }
+
     const popoverContent = (
-      <div className='text-xs p-2'>
+      <div className='text-xs p-2 max-w-[min(280px,calc(100vw-32px))]'>
         <Paragraph copyable={{ content: renderQuota(used) }}>
           {t('已用额度')}: {renderQuota(used)}
         </Paragraph>
       </div>
     );
+
     return (
-      <Popover content={popoverContent} position='top'>
-        <Tag color='white' shape='circle'>
+      <Popover
+        content={popoverContent}
+        position='top'
+        showArrow
+        trigger='hover'
+        spacing={8}
+        style={{ maxWidth: 'calc(100vw - 32px)' }}
+      >
+        <Tag color='white' shape='circle' className='cursor-default'>
           {t('无限额度')}
         </Tag>
       </Popover>
     );
   }
+
   const percent = total > 0 ? (remain / total) * 100 : 0;
+
+  if (isMobile) {
+    return (
+      <div className='flex flex-col items-end gap-1 min-w-0 max-w-full w-full'>
+        <span className='text-xs leading-snug tabular-nums text-semi-color-text-0'>
+          {`${renderQuota(remain)} / ${renderQuota(total)}`}
+        </span>
+        <Progress
+          percent={percent}
+          stroke={getProgressColor(percent)}
+          aria-label='quota usage'
+          format={() => `${percent.toFixed(0)}%`}
+          className='!w-full !max-w-[200px]'
+          style={{ marginTop: 0, marginBottom: 0 }}
+        />
+        <span className='text-[11px] text-semi-color-text-2 tabular-nums'>
+          {t('已用额度')}: {renderQuota(used)}
+        </span>
+      </div>
+    );
+  }
+
   const popoverContent = (
-    <div className='text-xs p-2'>
+    <div className='text-xs p-2 max-w-[min(280px,calc(100vw-32px))]'>
       <Paragraph copyable={{ content: renderQuota(used) }}>
         {t('已用额度')}: {renderQuota(used)}
       </Paragraph>
@@ -330,10 +361,18 @@ const renderQuotaUsage = (text, record, t) => {
       </Paragraph>
     </div>
   );
+
   return (
-    <Popover content={popoverContent} position='top'>
-      <Tag color='white' shape='circle'>
-        <div className='flex flex-col items-end'>
+    <Popover
+      content={popoverContent}
+      position='top'
+      showArrow
+      trigger='hover'
+      spacing={8}
+      style={{ maxWidth: 'calc(100vw - 32px)' }}
+    >
+      <Tag color='white' shape='circle' className='cursor-default !max-w-full'>
+        <div className='flex flex-col items-end min-w-0'>
           <span className='text-xs leading-none'>{`${renderQuota(remain)} / ${renderQuota(total)}`}</span>
           <Progress
             percent={percent}
@@ -347,6 +386,10 @@ const renderQuotaUsage = (text, record, t) => {
     </Popover>
   );
 };
+
+const renderQuotaUsage = (text, record, t) => (
+  <QuotaUsageCell record={record} t={t} />
+);
 
 // Render operations column
 const renderOperations = (
@@ -490,6 +533,7 @@ export const getTokensColumns = ({
       title: t('状态'),
       dataIndex: 'status',
       key: 'status',
+      width: 92,
       render: (text, record) => renderStatus(text, record, t),
     },
     {

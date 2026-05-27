@@ -1024,3 +1024,123 @@ html.dark .with-pastel-balls::before {
 }
 
 .ec-dbcd0a3c01b55203 { forced-color-adjust: auto; }
+
+/* ==================== 工作台 · 接入教程弹窗 ==================== */
+.workbench-guide-modal .semi-modal-wrap {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.workbench-guide-modal .semi-modal {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  margin: 0 auto !important;
+  transform: none !important;
+  max-width: min(720px, calc(100vw - 32px)) !important;
+  width: min(720px, calc(100vw - 32px)) !important;
+}
+
+.workbench-guide-modal .semi-modal-content {
+  border-radius: 16px !important;
+  overflow: hidden;
+  border: 1px solid var(--semi-color-border);
+  box-shadow:
+    0 24px 48px -12px rgba(15, 23, 42, 0.18),
+    0 8px 16px -8px rgba(15, 23, 42, 0.12);
+}
+
+.workbench-guide-modal .semi-modal-header {
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--semi-color-border);
+  background: var(--semi-color-bg-1);
+}
+
+.workbench-guide-modal .semi-modal-title {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.4;
+  padding-right: 32px;
+}
+
+.workbench-guide-modal .semi-modal-body {
+  padding: 16px 20px 20px;
+}
+
+.workbench-guide-modal .semi-modal-close {
+  top: 14px;
+  right: 14px;
+}
+
+.workbench-guide-tabs .semi-tabs-tab-list {
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  margin-bottom: 4px;
+}
+
+.workbench-guide-tabs .semi-tabs-tab-list::-webkit-scrollbar {
+  display: none;
+}
+
+.workbench-guide-tabs .semi-tabs-tab {
+  flex-shrink: 0;
+}
+
+/* 状态徽章：列宽较窄时也保持文字横向排列 */
+.status-pill {
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+/* Popover / Tooltip 不撑开移动端页面宽度 */
+@media (max-width: 767px) {
+  .semi-popover-wrapper,
+  .semi-tooltip-wrapper {
+    max-width: calc(100vw - 24px) !important;
+  }
+
+  .semi-popover-content,
+  .semi-tooltip-content {
+    max-width: calc(100vw - 24px);
+    word-break: break-word;
+  }
+}
+
+@media (max-width: 767px) {
+  .workbench-guide-modal .semi-modal-wrap {
+    padding: 12px;
+  }
+
+  .workbench-guide-modal .semi-modal {
+    max-width: calc(100vw - 24px) !important;
+    width: calc(100vw - 24px) !important;
+  }
+
+  .workbench-guide-modal .semi-modal-content {
+    border-radius: 14px !important;
+  }
+
+  .workbench-guide-modal .semi-modal-header {
+    padding: 14px 16px 10px;
+  }
+
+  .workbench-guide-modal .semi-modal-title {
+    font-size: 16px;
+  }
+
+  .workbench-guide-modal .semi-modal-body {
+    padding: 12px 16px 16px;
+  }
+
+  .workbench-guide-modal .semi-modal-close {
+    top: 12px;
+    right: 12px;
+  }
+}
