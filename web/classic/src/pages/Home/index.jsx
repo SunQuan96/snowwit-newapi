@@ -179,11 +179,11 @@ const Home = () => {
                     {t('多模型统一接入，只需将基址替换为：')}
                   </p>
                   {/* BASE URL 与端点选择 */}
-                  <div className='flex flex-col md:flex-row items-center justify-center gap-4 w-full mt-4 md:mt-6 max-w-md'>
+                  <div className='flex flex-col md:flex-row items-center justify-center gap-4 w-full mt-4 md:mt-6 max-w-xl md:max-w-3xl px-2'>
                     <Input
                       readonly
                       value={serverAddress}
-                      className='flex-1 !rounded-full'
+                      className='w-full min-w-0 !rounded-full'
                       size={isMobile ? 'default' : 'large'}
                       suffix={
                         <div className='flex items-center gap-2'>
